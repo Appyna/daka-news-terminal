@@ -5,6 +5,7 @@ import SidePanel from './components/SidePanel'
 import { useFeeds } from './hooks/useFeeds'
 import type { Article } from './types'
 
+// Force rebuild - v1.0.1
 export default function App() {
   const { feeds, loading, error } = useFeeds()
   const [selected, setSelected] = useState<Article | null>(null)
