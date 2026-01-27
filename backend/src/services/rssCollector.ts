@@ -7,32 +7,6 @@ import { upsertArticle, articleExists } from './database';
 const processedLinksCache = new Set<string>();
 const CACHE_MAX_SIZE = 10000; // Max 10k liens en mémoire
 
-// 📊 COMPTEUR DE TRADUCTIONS : Éviter de dépasser le quota OpenAI (10k/jour)
-let dailyTranslationCount = 0;
-let lastResetDate = new Date().toDateString();
-const MAX_DAILY_TRANSLATIONS = 999999; // Limite désactivée (mettre 9500 pour réactiver)
-
-function resetTranslationCountIfNeeded() {
-  const today = new Date().toDateString();
-  if (today !== lastResetDate) {
-    dailyTranslationCount = 0;
-    lastResetDate = today;
-    console.log('🔄 Compteur de traductions réinitialisé pour aujourd\'hui');
-  }
-}
-
-function canTranslate(): boolean {
-  resetTranslationCountIfNeeded();
-  return dailyTranslationCount < MAX_DAILY_TRANSLATIONS;
-}
-
-function incrementTranslationCount() {
-  dailyTranslationCount++;
-  if (dailyTranslationCount % 100 === 0) {
-    console.log(`📊 Traductions aujourd'hui : ${dailyTranslationCount}/${MAX_DAILY_TRANSLATIONS}`);
-  }
-}
-
 function addToCache(link: string) {
   processedLinksCache.add(link);
   // Limiter la taille du cache
@@ -162,27 +136,21 @@ export async function collectSourceArticles(source: Source): Promise<number> {
 
     // Traduction automatique (OpenAI gpt-4o-mini) - seulement pour nouveaux articles
     let translation = title;
-    if (!Vérifier si on peut encore traduire aujourd'hui
-      if (!canTranslate()) {
-        console.log(`⚠️ Quota quotidien atteint (${MAX_DAILY_TRANSLATIONS}) - utilisation de l'original pour "${title.substring(0, 40)}..."`);
-        translation = title; // Fallback sur le titre original
-      } else {
-        // Détection automatique de la langue source
-        const sourceLang = source.category === 'Israel' ? 'he' : 'en';
-        try {
-          // Timeout de 5 secondes pour la traduction
-          translation = await Promise.race([
-            translateText(title, sourceLang, 'fr'),
-            new Promise<string>((_, reject) => 
-              setTimeout(() => reject(new Error('Timeout')), 5000)
-            )
-          ]);
-          incrementTranslationCount(); // ✅ Compter seulement si traduction réussie
-        } catch (error) {
-          console.log(`⚠️ Traduction timeout/erreur pour "${title.substring(0, 40)}..." - utilisation de l'original`);
-          translation = title; // Fallback sur le titre original
-        }e.substring(0, 40)}..." - utilisation de l'original`);
-        translation = title; // Fallback sur le titre original
+    if (!source.skip_translation) {
+      // Détection automatique de la langue source
+      const sourceLang = source.category === 'Israel' ? 'he' : 'en';
+      try {
+        // Timeout de 15 secondes pour la traduction (au lieu de 5)
+        translation = await Promise.race([
+          translateText(title, sourceLang, 'fr'),
+          new Promise<string>((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 15000)
+          )
+        ]);
+      } catch (error) {
+        // ❌ Si traduction échoue : NE PAS afficher l'article
+        console.log(`❌ Traduction timeout/erreur pour "${title.substring(0, 40)}..." - article ignoré`);
+        continue; // Skip cet article complètement
       }
     }
 
