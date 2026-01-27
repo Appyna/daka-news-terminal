@@ -10,7 +10,7 @@ const CACHE_MAX_SIZE = 10000; // Max 10k liens en mémoire
 // 📊 COMPTEUR DE TRADUCTIONS : Éviter de dépasser le quota OpenAI (10k/jour)
 let dailyTranslationCount = 0;
 let lastResetDate = new Date().toDateString();
-const MAX_DAILY_TRANSLATIONS = 9500; // Limite de sécurité (marge de 500)
+const MAX_DAILY_TRANSLATIONS = 999999; // Limite désactivée (mettre 9500 pour réactiver)
 
 function resetTranslationCountIfNeeded() {
   const today = new Date().toDateString();
