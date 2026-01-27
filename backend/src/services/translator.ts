@@ -20,13 +20,15 @@ export async function translateText(
   fromLang: string = 'he',
   toLang: string = 'fr'
 ): Promise<string> {
-  // Vérifier le cache d'abord
+  // Vérifier le cache d'abord (économise les appels OpenAI)
   const cached = await getCachedTranslation(text, fromLang, toLang);
   if (cached) {
+    // console.log(`✅ Cache hit pour: "${text.substring(0, 30)}..."`);
     return cached;
   }
 
   try {
+    // ✅ Appel OpenAI seulement si pas en cache
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -45,12 +47,17 @@ export async function translateText(
 
     const translation = response.choices[0]?.message?.content?.trim() || text;
 
-    // Sauvegarder dans le cache
+    // Sauvegarder dans le cache pour la prochaine fois
     await saveCachedTranslation(text, translation, fromLang, toLang);
 
     return translation;
   } catch (error: any) {
-    console.error('❌ Erreur traduction OpenAI:', error.message);
+    // Gérer les erreurs de rate limit spécifiquement
+    if (error.message?.includes('429') || error.message?.includes('Rate limit')) {
+      console.error('⚠️ Rate limit OpenAI atteint - utilisation de l\'original');
+    } else {
+      console.error('❌ Erreur traduction OpenAI:', error.message);
+    }
     return text; // Fallback: retourner le texte original
   }
 }
