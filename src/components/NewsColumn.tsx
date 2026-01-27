@@ -15,7 +15,7 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ column, onItemClick }) => {
   return (
     <div className="flex flex-col h-full flex-1 min-w-[320px] overflow-hidden">
       <div 
-        className="p-0 font-extrabold text-sm uppercase tracking-wider border-b border-white/20 flex-shrink-0"
+        className="p-1.5 font-extrabold text-sm uppercase tracking-wider border-b border-white/20 flex-shrink-0"
         style={{ color: '#F5C518' }}
       >
         {column.media}
@@ -25,7 +25,7 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ column, onItemClick }) => {
           // Skeleton loader professionnel
           <div className="space-y-0">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="p-0 border-b border-white/5 animate-pulse">
+              <div key={i} className="p-1.5 border-b border-white/5 animate-pulse">
                 <div className="flex items-start gap-2">
                   <div className="h-3 w-12 bg-white/10 rounded"></div>
                   <div className="flex-1 space-y-2">
