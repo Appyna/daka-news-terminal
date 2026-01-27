@@ -26,15 +26,12 @@ app.use(helmet());
 // Compression des réponses
 app.use(compression());
 
-// CORS (Web + iOS + Android)
+// CORS - Autoriser toutes les origines
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL_WEB || 'http://localhost:3000',
-    process.env.FRONTEND_URL_IOS || 'dakanews://',
-    process.env.FRONTEND_URL_ANDROID || 'dakanews://',
-    '*' // Pour dev uniquement, à restreindre en prod
-  ],
-  credentials: true
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Parse JSON
