@@ -3,6 +3,19 @@ import { Source, Article } from '../config/supabase';
 import { translateText } from './translator';
 import { upsertArticle, articleExists } from './database';
 
+// 🛡️ CACHE EN MÉMOIRE : Éviter de re-traduire les mêmes articles même si Supabase échoue
+const processedLinksCache = new Set<string>();
+const CACHE_MAX_SIZE = 10000; // Max 10k liens en mémoire
+
+function addToCache(link: string) {
+  processedLinksCache.add(link);
+  // Limiter la taille du cache
+  if (processedLinksCache.size > CACHE_MAX_SIZE) {
+    const firstItem = processedLinksCache.values().next().value;
+    processedLinksCache.delete(firstItem);
+  }
+}
+
 /**
  * Fetch et parser un flux RSS
  */
@@ -106,10 +119,17 @@ export async function collectSourceArticles(source: Source): Promise<number> {
       continue;
     }
 
-    // Vérifier si l'article existe déjà (éviter traduction inutile)
-    const exists = await articleExists(source.id, link);
-    if (exists) {
+    // 🛡️ DOUBLE VÉRIFICATION : Cache mémoire + Supabase
+    // Si déjà traité dans cette session OU existe en base → SKIP
+    if (processedLinksCache.has(link)) {
       skippedDuplicates++;
+      continue; // Déjà traité dans cette session
+    }
+
+    const existsInDB = await articleExists(source.id, link);
+    if (existsInDB) {
+      skippedDuplicates++;
+      addToCache(link); // Ajouter au cache mémoire aussi
       continue; // Article déjà en base, pas de traduction
     }
 
@@ -150,6 +170,7 @@ export async function collectSourceArticles(source: Source): Promise<number> {
     const success = await upsertArticle(article);
     if (success) {
       newArticlesCount++;
+      addToCache(link); // 🛡️ Ajouter au cache mémoire après succès
     }
   }
 
