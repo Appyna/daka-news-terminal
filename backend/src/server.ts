@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 // Routes
 import feedsRouter from './routes/feeds';
 import sourcesRouter from './routes/sources';
+import adminRouter from './routes/admin';
 
 // CRON
 import { startAllCrons } from './cron/collector';
@@ -56,6 +57,7 @@ app.get('/', (req: Request, res: Response) => {
 // API routes
 app.use('/api/feeds', feedsRouter);
 app.use('/api/sources', sourcesRouter);
+app.use('/api/admin', adminRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
