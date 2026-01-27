@@ -112,7 +112,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-screen flex flex-col" style={{ backgroundColor: COLORS.dark1 }}>
+    <div className="w-full h-screen flex flex-col overflow-hidden" style={{ backgroundColor: COLORS.dark3 }}>
       <header 
         className="h-16 flex-shrink-0 border-b border-white/5 flex items-center justify-between px-6 z-20"
         style={{ backgroundColor: '#1A1635' }}
