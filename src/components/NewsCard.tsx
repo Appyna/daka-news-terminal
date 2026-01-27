@@ -12,7 +12,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ item, onClick }) => {
   return (
     <div 
       onClick={() => onClick(item)}
-      className="group p-4 hover:bg-white/5 cursor-pointer transition-colors"
+      className="group p-3.5 hover:bg-white/5 cursor-pointer transition-colors"
     >
       <div className="flex justify-between items-start mb-1.5">
         <span className="text-[11px] font-mono text-white/40">{item.time}</span>
