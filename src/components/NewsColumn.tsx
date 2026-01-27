@@ -13,7 +13,7 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ column, onItemClick }) => {
   const isLoading = column.items.length === 0;
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden" style={{ backgroundColor: column.backgroundColor }}>
+    <div className="flex flex-col h-full w-full overflow-hidden">
       <div 
         className="p-3.5 font-extrabold text-sm uppercase tracking-wider border-b border-white/20 bg-white/5 flex-shrink-0"
         style={{ color: '#F5C518' }}
