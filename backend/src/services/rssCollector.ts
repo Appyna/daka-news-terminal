@@ -78,9 +78,11 @@ export async function collectSourceArticles(source: Source): Promise<number> {
 
   console.log(`📊 ${source.name}: ${items.length} articles dans le flux RSS`);
 
-  // Collecter TOUS les articles du flux (pas de limite)
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
+  // Collecter les 15 PREMIERS articles seulement (au lieu de TOUS)
+  const articlesToProcess = items.slice(0, 15);
+  
+  for (let i = 0; i < articlesToProcess.length; i++) {
+    const item = articlesToProcess[i];
 
     // Extraire les données (compatible RSS 2.0 et Atom)
     const title = cleanText(
@@ -116,7 +118,18 @@ export async function collectSourceArticles(source: Source): Promise<number> {
     if (!source.skip_translation) {
       // Détection automatique de la langue source
       const sourceLang = source.category === 'Israel' ? 'he' : 'en';
-      translation = await translateText(title, sourceLang, 'fr');
+      try {
+        // Timeout de 5 secondes pour la traduction
+        translation = await Promise.race([
+          translateText(title, sourceLang, 'fr'),
+          new Promise<string>((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          )
+        ]);
+      } catch (error) {
+        console.log(`⚠️ Traduction timeout/erreur pour "${title.substring(0, 40)}..." - utilisation de l'original`);
+        translation = title; // Fallback sur le titre original
+      }
     }
 
     // Préparer l'article

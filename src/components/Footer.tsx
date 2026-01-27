@@ -13,7 +13,7 @@ const Footer: React.FC<FooterProps> = ({
 }) => {
   return (
     <footer 
-      className="h-[56px] border-t border-white/5 px-6 flex items-center gap-8 z-20"
+      className="h-14 flex-shrink-0 border-t border-white/5 px-6 flex items-center gap-8 z-20"
       style={{ backgroundColor: COLORS.dark2 }}
     >
       {/* Search */}
