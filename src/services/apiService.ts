@@ -1,6 +1,6 @@
 import type { Feed, Article } from '../types'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://daka-news-backend.onrender.com/api'
+const API_BASE_URL = 'https://daka-news-backend.onrender.com/api'
 
 interface BackendArticle {
   id: string
