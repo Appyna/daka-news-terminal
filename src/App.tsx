@@ -173,9 +173,9 @@ const App: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex h-full w-full">
+          <div className="flex h-full w-full overflow-hidden">
             {filteredColumns.map((column) => (
-              <div key={column.id} className="flex-1 h-full min-w-[280px]">
+              <div key={column.id} className="flex-1 h-full min-w-[320px]">
                 <NewsColumn column={column} onItemClick={setSelectedNewsItem} />
               </div>
             ))}

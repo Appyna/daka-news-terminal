@@ -13,14 +13,14 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ column, onItemClick }) => {
   const isLoading = column.items.length === 0;
 
   return (
-    <div className="flex flex-col h-full overflow-hidden border-r border-white/5" style={{ backgroundColor: column.backgroundColor }}>
+    <div className="flex flex-col h-full w-full overflow-hidden border-r border-white/5" style={{ backgroundColor: column.backgroundColor }}>
       <div 
-        className="p-3.5 font-extrabold text-sm uppercase tracking-wider border-b border-white/20 bg-white/5"
+        className="p-3.5 font-extrabold text-sm uppercase tracking-wider border-b border-white/20 bg-white/5 flex-shrink-0"
         style={{ color: '#F5C518' }}
       >
         {column.media}
       </div>
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden w-full">
         {isLoading ? (
           // Skeleton loader professionnel
           <div className="space-y-0">
