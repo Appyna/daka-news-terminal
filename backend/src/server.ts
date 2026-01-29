@@ -3,6 +3,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import dotenv from 'dotenv';
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
+
+// Config
+import { initSentry } from './config/sentry';
 
 // Routes
 import feedsRouter from './routes/feeds';
@@ -13,6 +18,9 @@ import adminRouter from './routes/admin';
 import { startAllCrons } from './cron/collector';
 
 dotenv.config();
+
+// 🔴 SENTRY - Initialiser en premier (avant tout le reste)
+initSentry();
 
 const app: Application = express();
 const PORT = process.env.PORT || 4000;
@@ -71,6 +79,10 @@ app.use((req: Request, res: Response) => {
 // Error handler
 app.use((err: Error, req: Request, res: Response, next: any) => {
   console.error('❌ Erreur serveur:', err);
+  
+  // Capturer l'erreur dans Sentry
+  Sentry.captureException(err);
+  
   res.status(500).json({
     success: false,
     error: err.message

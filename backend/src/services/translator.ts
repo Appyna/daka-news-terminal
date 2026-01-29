@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import { getCachedTranslation, saveCachedTranslation } from './database';
+import * as Sentry from '@sentry/node';
 
 dotenv.config();
 
@@ -258,8 +259,18 @@ Traduis UNIQUEMENT le titre/texte suivant. Réponds avec la traduction pure, san
     // Gérer les erreurs de rate limit spécifiquement
     if (error.message?.includes('429') || error.message?.includes('Rate limit')) {
       console.error('⚠️ Rate limit OpenAI atteint - utilisation de l\'original');
+      // Ne pas envoyer à Sentry (rate limit = normal)
     } else {
       console.error('❌ Erreur traduction OpenAI:', error.message);
+      // Capturer dans Sentry avec contexte
+      Sentry.captureException(error, {
+        extra: {
+          fromLang,
+          toLang,
+          textLength: text.length,
+          textPreview: text.substring(0, 100)
+        }
+      });
     }
     return text; // Fallback: retourner le texte original
   }

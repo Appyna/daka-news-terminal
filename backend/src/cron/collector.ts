@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { getActiveSources, cleanupOldArticles } from '../services/database';
 import { collectAllSources } from '../services/rssCollector';
+import * as Sentry from '@sentry/node';
 
 /**
  * Job de collecte RSS (toutes les 3 minutes par défaut)
@@ -26,6 +27,13 @@ export function startRSSCollectionCron() {
       console.log('✅ Collecte RSS terminée\n');
     } catch (error) {
       console.error('❌ Erreur CRON RSS:', error);
+      // Capturer dans Sentry (erreur critique = le backend ne collecte plus)
+      Sentry.captureException(error, {
+        extra: {
+          job: 'RSS Collection CRON',
+          timestamp: new Date().toISOString()
+        }
+      });
     }
   });
 
@@ -38,6 +46,13 @@ export function startRSSCollectionCron() {
       console.log('✅ Collecte initiale terminée\n');
     } catch (error) {
       console.error('❌ Erreur collecte initiale:', error);
+      // Capturer dans Sentry (problème au démarrage)
+      Sentry.captureException(error, {
+        extra: {
+          job: 'Initial RSS Collection',
+          timestamp: new Date().toISOString()
+        }
+      });
     }
   })();
 }
