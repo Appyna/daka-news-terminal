@@ -67,6 +67,11 @@ app.use('/api/feeds', feedsRouter);
 app.use('/api/sources', sourcesRouter);
 app.use('/api/admin', adminRouter);
 
+// 🧪 Route de test Sentry
+app.get('/api/test-sentry', (req: Request, res: Response) => {
+  throw new Error('🧪 Test Sentry - Cette erreur est volontaire pour vérifier le monitoring');
+});
+
 // 404 handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({
