@@ -59,6 +59,15 @@ NEUTRALITÉ : Ton neutre et factuel. Pas de sensationnalisme. Ne pas qualifier m
 🔴 רבנות → Rabbinat (JAMAIS rabbinerie)
 🔴 רבנות הראשית → Grand Rabbinat
 
+═══ 🔴 PIÈGES CONTEXTUELS CRITIQUES ═══
+
+🔴 השבת (ATTENTION - DOUBLE SENS) :
+- השבת חטוף/חטופים → le retour de l'otage / des otages (PAS "Shabbat de l'otage")
+- Contexte "retour/libération" : השבת vient de להשיב (ramener/retourner)
+- Contexte "jour" : השבת = le Shabbat (jour saint)
+- RÈGLE : TOUJOURS vérifier le contexte autour de השבת
+- Si lié à חטוף/חטופים/שחרור → TOUJOURS "retour" (JAMAIS "Shabbat")
+
 ═══ TERMES INTERDITS (sauf citation guillemets) ═══
 Colons, colonie, colonisation, Palestine, Cisjordanie, ultra-orthodoxes, occupation, territoires occupés, martyrs (terroristes), victimes (terroristes), résistance (terrorisme), raid (opérations Tsahal), apartheid, nettoyage ethnique, génocide.
 
