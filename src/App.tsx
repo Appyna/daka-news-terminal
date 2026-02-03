@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import NewsColumn from './components/NewsColumn';
 import Footer from './components/Footer';
 import NewsModal from './components/NewsModal';
+import TopBar from '../components/TopBar';
 import { NewsItem, NewsColumn as NewsColumnType } from './types-old';
 import { COLORS } from './constants';
 
@@ -17,6 +18,17 @@ const App: React.FC = () => {
   const [currentCountry, setCurrentCountry] = useState('Israel');
   const [currentSource, setCurrentSource] = useState('Ynet');
   const [isLoading, setIsLoading] = useState(true);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+
+  // Détecter le retour du magic link de réinitialisation
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    if (hashParams.get('type') === 'recovery') {
+      setShowPasswordReset(true);
+      // Nettoyer l'URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   useEffect(() => {
     const loadAllFeeds = async () => {
@@ -113,16 +125,7 @@ const App: React.FC = () => {
 
   return (
     <div className="w-full h-screen flex flex-col overflow-hidden" style={{ backgroundColor: COLORS.dark3 }}>
-      <header 
-        className="h-16 flex-shrink-0 border-b border-white/5 flex items-center justify-between px-6 z-20"
-        style={{ backgroundColor: '#1A1635' }}
-      >
-        <Logo />
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Live</span>
-        </div>
-      </header>
+      <TopBar />
       
       <button
         onClick={() => setMenuOpen(true)}

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1635 0%, #2d1b69 100%);
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    .header {
+      background: linear-gradient(135deg, #1a1635 0%, #2d1b69 100%);
+      padding: 40px 30px;
+      text-align: center;
+    }
+    .logo {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin: 0;
+    }
+    .logo-daka {
+      color: #ffffff;
+    }
+    .logo-news {
+      color: #fbbf24;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    h1 {
+      color: #1a1635;
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      text-align: center;
+    }
+    p {
+      color: #4b5563;
+      font-size: 16px;
+      line-height: 1.6;
+      margin: 0 0 24px 0;
+    }
+    .code-container {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 2px solid #3b82f6;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      margin: 32px 0;
+    }
+    .code-label {
+      color: #1e40af;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .code {
+      font-family: 'Courier New', monospace;
+      font-size: 48px;
+      font-weight: 800;
+      color: #1e3a8a;
+      letter-spacing: 8px;
+      margin: 0;
+      user-select: all;
+    }
+    .expiry {
+      color: #f59e0b;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 16px;
+    }
+    .info-box {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 24px 0;
+    }
+    .info-box p {
+      color: #92400e;
+      font-size: 14px;
+      margin: 0;
+    }
+    .footer {
+      background: #f9fafb;
+      padding: 24px 30px;
+      text-align: center;
+      border-top: 1px solid #e5e7eb;
+    }
+    .footer p {
+      color: #6b7280;
+      font-size: 13px;
+      margin: 8px 0;
+    }
+    .footer a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="logo"><span class="logo-daka">DAKA</span> <span class="logo-news">News</span></h1>
+    </div>
+    
+    <div class="content">
+      <h1>Vérification de votre email</h1>
+      <p>Pour finaliser la création de votre compte, veuillez entrer le code de vérification ci-dessous :</p>
+      
+      <div class="code-container">
+        <div class="code-label">Code de vérification</div>
+        <p class="code">{{ .Token }}</p>
+        <p class="expiry">Expire dans 20 minutes</p>
+      </div>
+      
+      <div class="info-box">
+        <p><strong>Vous n'avez pas demandé ce code ?</strong><br>
+        Ignorez cet email. Aucune action n'est requise.</p>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>DAKA News</p>
+    </div>
+  </div>
+</body>
+</html>

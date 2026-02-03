@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { COLORS } from '../constants';
+import { COLORS } from '../src/constants';
 import Logo from './Logo';
 
 interface OnboardingProps {

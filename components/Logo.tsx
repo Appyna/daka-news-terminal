@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { COLORS } from '../constants';
+import { COLORS } from '../src/constants';
 
 const Logo: React.FC = () => {
   return (

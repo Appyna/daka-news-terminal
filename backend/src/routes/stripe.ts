@@ -1,0 +1,102 @@
+import express from 'express';
+import Stripe from 'stripe';
+
+const router = express.Router();
+
+// Initialiser Stripe avec la clé secrète
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2024-12-18.acacia',
+});
+
+/**
+ * POST /api/stripe/create-checkout-session
+ * Crée une session Stripe Checkout pour l'abonnement Premium
+ */
+router.post('/create-checkout-session', async (req, res) => {
+  try {
+    const { userId, userEmail } = req.body;
+
+    if (!userId || !userEmail) {
+      return res.status(400).json({
+        success: false,
+        error: 'userId et userEmail sont requis',
+      });
+    }
+
+    if (!process.env.STRIPE_PRICE_ID) {
+      return res.status(500).json({
+        success: false,
+        error: 'STRIPE_PRICE_ID non configuré',
+      });
+    }
+
+    // Créer la session Stripe Checkout
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: process.env.STRIPE_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+      customer_email: userEmail,
+      metadata: {
+        userId: userId,
+      },
+      success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}?payment=success`,
+      cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}?payment=cancel`,
+      allow_promotion_codes: true,
+      billing_address_collection: 'auto',
+    });
+
+    console.log('✅ Session Stripe créée:', session.id, 'pour user:', userId);
+
+    res.json({
+      success: true,
+      sessionId: session.id,
+      url: session.url,
+    });
+  } catch (error: any) {
+    console.error('❌ Erreur création session Stripe:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * POST /api/stripe/create-portal-session
+ * Crée une session Customer Portal pour gérer l'abonnement
+ */
+router.post('/create-portal-session', async (req, res) => {
+  try {
+    const { customerId } = req.body;
+
+    if (!customerId) {
+      return res.status(400).json({
+        success: false,
+        error: 'customerId requis',
+      });
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/profile`,
+    });
+
+    res.json({
+      success: true,
+      url: session.url,
+    });
+  } catch (error: any) {
+    console.error('❌ Erreur création portal session:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+export default router;

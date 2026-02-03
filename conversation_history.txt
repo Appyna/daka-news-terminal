@@ -1,0 +1,410 @@
+Historique de session sauvegardé le 29-01-2026
+
+-- Conversation (sélection) --
+
+Utilisateur: as tu un historique de discussion quelque parrt
+
+Assistant: Je peux sauvegarder l'historique de cette session dans un fichier si tu veux.
+
+Utilisateur: non mais il faut que tu cherches dans mon dossier github, sauvegarde qui ont pu etre faites
+
+Assistant: J'ai recherché dans le dépôt pour des fichiers contenant 'conversation', 'history', 'chat' ou 'log'. Aucune correspondance pertinente par nom trouvée. Une occurrence a été trouvée dans un asset compilé : /dist/assets/index-Dajp_0bY.js (probablement code bundle, non pertinent).
+
+Action réalisée: création de ce fichier contenant l'historique partiel de la session et un résumé des recherches effectuées.
+
+Emplacement du fichier créé: conversation_history.txt
+
+-- Fin --
+
+-- Contenu de SAUVEGARDE_SESSION_29JAN2026.md --
+
+````markdown
+# 💾 SAUVEGARDE SESSION - 29 JANVIER 2026
+
+## 📋 RÉSUMÉ DE LA SESSION
+
+**Problème initial** : Erreur "JavaScript heap out of memory" sur Render
+**Solution mise en place** : Monitoring Sentry (en attendant migration Railway)
+**Durée totale** : ~3 heures
+**Status** : ✅ Monitoring actif, backend stable
+
+---
+
+## 🔧 MODIFICATIONS APPORTÉES
+
+### 1. Installation Sentry (Monitoring d'erreurs)
+
+**Packages installés** :
+```bash
+cd backend
+npm install @sentry/node@latest @sentry/profiling-node@latest
+```
+
+**Fichiers créés** :
+- `/backend/src/config/sentry.ts` - Configuration centralisée Sentry
+
+**Fichiers modifiés** :
+- `/backend/src/server.ts` - Initialisation Sentry + route de test (supprimée après)
+- `/backend/src/services/translator.ts` - Capture erreurs OpenAI
+- `/backend/src/cron/collector.ts` - Capture erreurs CRON RSS
+
+**Variables d'environnement ajoutées** :
+
+**Local** (`/backend/.env`) :
+```bash
+SENTRY_DSN=https://2d46ba3b40cd89b759bb02dc1b17cac1@o4510427503329280.ingest.de.sentry.io/4510793282093136
+```
+
+**Render** (Environment variables) :
+```
+Key: SENTRY_DSN
+Value: https://2d46ba3b40cd89b759bb02dc1b17cac1@o4510427503329280.ingest.de.sentry.io/4510793282093136
+```
+
+---
+
+## 📦 COMMITS GITHUB
+
+**3 commits poussés sur master** :
+
+1. **15e4f4e** - "✨ Add Sentry monitoring for error tracking"
+	- Fichiers : sentry.ts, server.ts, translator.ts, collector.ts, package.json
+   
+2. **44c3a67** - "🧪 Add Sentry test route"
+	- Fichier : server.ts (route `/api/test-sentry`)
+   
+3. **6d43e32** - "🧹 Remove Sentry test route - monitoring configured"
+	- Fichier : server.ts (route supprimée après validation)
+
+---
+
+## 🌐 CONFIGURATION SENTRY
+
+**Compte** : projet.lgsz@gmail.com
+**Projet** : daka-news-backend
+**Plan** : Developer (gratuit - 5,000 erreurs/mois)
+**Dashboard** : https://sentry.io
+
+**Alerte email configurée** :
+- When : "An issue is first seen"
+- Then : "Send a notification to projet.lgsz@gmail.com"
+- Name : "Erreurs backend email"
+
+**Ce qui est surveillé** :
+- ✅ Erreurs OpenAI (sauf rate limit)
+- ✅ Erreurs CRON (collecte RSS)
+- ✅ Erreurs Express API
+- ✅ Crashes backend (heap out of memory)
+
+---
+
+## 📁 FICHIERS DOCUMENTATION CRÉÉS
+
+Ces fichiers sont dans le dossier racine du projet :
+
+1. **SENTRY_SETUP.md** - Guide complet installation Sentry (15 min)
+2. **SENTRY_RESUME.md** - Résumé court de ce qui a été fait
+3. **TEST_SENTRY.md** - Guide test de la route Sentry
+4. **VERIFICATION_SENTRY.md** - Vérification déploiement Render
+5. **DIAGNOSTIC_SENTRY_EMAIL.md** - Troubleshooting notifications email
+6. **REDEPLOY_RENDER.md** - Forcer un redéploiement Render
+
+---
+
+## 🚀 ÉTAT ACTUEL DU PROJET
+
+### Backend (Render)
+- **URL** : https://daka-news-backend.onrender.com
+- **Status** : ✅ Déployé et actif
+- **RAM** : 512MB (limite gratuite)
+- **Monitoring** : ✅ Sentry actif (logs confirment : "✅ Sentry initialisé - Monitoring actif")
+- **CRON** : Collecte RSS toutes les 3 minutes (180 secondes)
+
+### Frontend (Vercel)
+- **Status** : ✅ Déployé
+- **Framework** : React 19.2.3 + TypeScript + Vite 6.2.0
+
+### Base de données (Supabase)
+- **Status** : ✅ Active
+- **Tables** : articles, sources, translations_cache
+- **Cache traductions** : Actif (1 traduction par article, partagée)
+
+### Traduction (OpenAI)
+- **Modèle** : gpt-4o-mini
+- **Prompts éditoriaux** : ~3000 caractères (hébreu + anglais)
+- **Cache** : Supabase (réduit les coûts OpenAI)
+
+---
+
+## ⚠️ PROBLÈME NON RÉSOLU
+
+**Mémoire insuffisante sur Render** :
+- Prompts 3000+ caractères recréés à chaque appel
+- Risque : "JavaScript heap out of memory"
+- Solution temporaire : Sentry surveille les crashes
+- **Solution permanente recommandée** : Migrer vers Railway (2GB RAM gratuit)
+
+**Fichier concerné** : `/backend/src/services/translator.ts`
+- Lignes 37-128 : PROMPT_HEBREW (3000+ chars)
+- Lignes 129-258 : PROMPT_ENGLISH (3000+ chars)
+
+**Tentative d'optimisation** : Échouée (trop complexe)
+**Backup créé** : `translator.ts.backup` (fichier original sauvegardé)
+
+---
+
+## 🔑 ACCÈS & CREDENTIALS
+
+**Tous les accès sont sur votre compte personnel** :
+
+### GitHub
+- Repo : Appyna/daka-news-terminal
+- Branch : master
+- Auto-deploy : Render (backend) + Vercel (frontend)
+
+### Render
+- Email : projet.lgsz@gmail.com
+- Service : daka-news-backend
+- Plan : Starter (gratuit)
+
+### Vercel
+- Email : projet.lgsz@gmail.com
+- Projet : daka-news-terminal (frontend)
+
+### Supabase
+- Email : projet.lgsz@gmail.com
+- Projet : daka-news (PostgreSQL)
+
+### OpenAI
+- Clé API stockée dans Render env vars
+- Utilisation : Traduction hébreu/anglais → français
+
+### Sentry
+- Email : projet.lgsz@gmail.com
+- Projet : daka-news-backend
+- DSN dans Render + local `.env`
+
+---
+
+## 🖥️ CHANGEMENT D'ORDINATEUR - AUCUN PROBLÈME !
+
+### ✅ Ce qui est sauvegardé dans le cloud (accessible partout)
+
+1. **Code source** : 
+	- GitHub (Appyna/daka-news-terminal)
+	- Tous les commits sont poussés
+	- Rien de local uniquement
+
+2. **Backend déployé** :
+	- Render (auto-deploy depuis GitHub)
+	- Variables d'environnement sur Render
+	- Pas besoin de config locale
+
+3. **Frontend déployé** :
+	- Vercel (auto-deploy depuis GitHub)
+	- Config dans le repo
+
+4. **Base de données** :
+	- Supabase (cloud PostgreSQL)
+	- Pas de données locales
+
+5. **Monitoring** :
+	- Sentry (cloud)
+	- Config dans le code (poussé sur GitHub)
+
+### 📝 Ce qu'il faut faire sur le nouvel ordinateur
+
+1. **Cloner le repo** :
+```bash
+git clone https://github.com/Appyna/daka-news-terminal.git
+cd daka-news-terminal
+```
+
+2. **Installer les dépendances** :
+```bash
+# Frontend
+npm install
+
+# Backend
+cd backend
+npm install
+```
+
+3. **Créer le fichier `.env` local** (SEULEMENT pour dev local) :
+```bash
+cd backend
+touch .env
+```
+
+Copier dans `/backend/.env` :
+```bash
+# Supabase
+SUPABASE_URL=votre_url_supabase
+SUPABASE_SERVICE_KEY=votre_clé_service
+
+# OpenAI
+OPENAI_API_KEY=votre_clé_openai
+
+# Sentry
+SENTRY_DSN=https://2d46ba3b40cd89b759bb02dc1b17cac1@o4510427503329280.ingest.de.sentry.io/4510793282093136
+
+# Port
+PORT=3000
+```
+
+**IMPORTANT** : Le `.env` n'est PAS dans GitHub (pour sécurité). Il faut le recréer sur chaque machine.
+
+**Où trouver les clés** :
+- SUPABASE_URL et KEY : https://supabase.com → Votre projet → Settings → API
+- OPENAI_API_KEY : https://platform.openai.com/api-keys
+- SENTRY_DSN : Déjà dans ce document ci-dessus
+
+4. **Tester en local** (optionnel) :
+```bash
+# Backend
+cd backend
+npm run dev
+
+# Frontend (autre terminal)
+cd ..
+npm run dev
+```
+
+5. **Modifier et pousser** :
+```bash
+git add .
+git commit -m "Votre message"
+git push
+```
+→ Render et Vercel redéploieront automatiquement !
+
+---
+
+## 🎯 PROCHAINES ÉTAPES RECOMMANDÉES
+
+### Priorité 1 : Résoudre le problème de mémoire
+**Option A - Railway (RECOMMANDÉ)** :
+- Migrer le backend de Render → Railway
+- 2GB RAM gratuit vs 512MB
+- 30 minutes de setup
+- Fichier `railway.toml` déjà présent dans le repo
+
+**Option B - Optimiser les prompts** :
+- Réduire de 3000 → 1500 caractères
+- Risque : qualité éditoriale affectée
+- 2-3 heures de travail + tests
+
+**Option C - Réduire fréquence CRON** :
+- Passer de 3 min → 10 min
+- Réduit charge de 70%
+- 5 minutes de modification
+
+### Priorité 2 : Optimisations commercialisation
+- Pagination API (50 articles/page)
+- Meta tags SEO (OpenGraph)
+- Page "À propos" + "Contact"
+- Politique de confidentialité (RGPD)
+
+### Priorité 3 : Fonctionnalités UX
+- Mode sombre/clair
+- Filtres par date
+- Recherche d'articles
+- Bookmarks / favoris
+
+---
+
+## 📞 RÉFÉRENCES TECHNIQUES
+
+### Structure du projet
+```
+DAKA NEWS TERMINAL/
+├── backend/
+│   ├── src/
+│   │   ├── server.ts (✅ modifié - Sentry init)
+│   │   ├── config/
+│   │   │   └── sentry.ts (✅ nouveau - Config Sentry)
+│   │   ├── services/
+│   │   │   └── translator.ts (✅ modifié - Capture erreurs)
+│   │   └── cron/
+│   │       └── collector.ts (✅ modifié - Capture erreurs)
+│   ├── package.json (✅ modifié - Sentry packages)
+│   └── .env (⚠️ local uniquement - recréer sur nouveau PC)
+├── src/ (frontend React)
+├── components/
+├── services/
+└── [Documentation Sentry...].md
+```
+
+### Commandes utiles
+
+**Développement local** :
+```bash
+# Backend
+cd backend && npm run dev
+
+# Frontend
+npm run dev
+```
+
+**Déploiement** :
+```bash
+git add .
+git commit -m "Message"
+git push
+# → Auto-deploy sur Render + Vercel
+```
+
+**Voir les logs Render** :
+1. https://dashboard.render.com
+2. Sélectionner daka-news-backend
+3. Logs (menu gauche)
+
+**Forcer redéploiement Render** :
+1. Dashboard → Service → "Manual Deploy" (bouton bleu)
+2. Ou : `git commit --allow-empty -m "Force deploy" && git push`
+
+---
+
+## ✅ CHECKLIST AVANT DE CHANGER D'ORDINATEUR
+
+- [x] Code poussé sur GitHub (3 commits Sentry)
+- [x] Backend déployé sur Render (Sentry actif)
+- [x] Frontend déployé sur Vercel
+- [x] Variables d'environnement sur Render (SENTRY_DSN ajouté)
+- [x] Sentry configuré et testé (emails fonctionnels)
+- [x] Documentation créée (6 fichiers MD)
+- [x] Sauvegarde session créée (ce fichier)
+
+**⚠️ À FAIRE sur le nouveau PC** :
+- [ ] Cloner le repo GitHub
+- [ ] Installer npm dependencies (frontend + backend)
+- [ ] Recréer `/backend/.env` avec les clés (voir section ci-dessus)
+- [ ] (Optionnel) Tester en local avec `npm run dev`
+
+---
+
+## 🎉 CONCLUSION
+
+**Tout est dans le cloud** - Vous pouvez changer d'ordinateur sans problème !
+
+Le seul fichier à recréer est `/backend/.env` (pour développement local uniquement).
+
+**En production** (Render/Vercel), tout est déjà configuré et fonctionne.
+
+**Monitoring actif** : Vous recevrez un email si le backend plante.
+
+**Prochaine priorité** : Migrer vers Railway pour résoudre le problème de mémoire.
+
+---
+
+**📧 Email de contact** : projet.lgsz@gmail.com
+**🔗 GitHub** : https://github.com/Appyna/daka-news-terminal
+**🌐 Backend** : https://daka-news-backend.onrender.com
+**📊 Sentry** : https://sentry.io → daka-news-backend
+
+**Date de cette sauvegarde** : 29 janvier 2026
+**Dernière modification** : 6d43e32 (Remove Sentry test route)
+
+````
+
+-- Fin de l'import --

@@ -13,6 +13,8 @@ import { initSentry } from './config/sentry';
 import feedsRouter from './routes/feeds';
 import sourcesRouter from './routes/sources';
 import adminRouter from './routes/admin';
+import stripeRouter from './routes/stripe';
+import webhooksRouter from './routes/webhooks';
 
 // CRON
 import { startAllCrons } from './cron/collector';
@@ -43,6 +45,10 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// ⚠️ IMPORTANT : Webhook Stripe doit être AVANT express.json()
+// Car Stripe a besoin du raw body
+app.use('/api/webhooks', webhooksRouter);
+
 // Parse JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -65,8 +71,7 @@ app.get('/', (req: Request, res: Response) => {
 // API routes
 app.use('/api/feeds', feedsRouter);
 app.use('/api/sources', sourcesRouter);
-app.use('/api/admin', adminRouter);
-
+app.use('/api/admin', adminRouter);app.use('/api/stripe', stripeRouter);
 // 404 handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({

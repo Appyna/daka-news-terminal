@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { NewsItem } from '../types';
-import { COLORS } from '../constants';
+import { NewsItem } from '../src/types';
+import { COLORS } from '../src/constants';
 
 interface NewsCardProps {
   item: NewsItem;
