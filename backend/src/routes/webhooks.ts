@@ -58,10 +58,10 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
 
         console.log('✅ Paiement réussi pour user:', userId);
 
-        // Activer le premium
+        // Activer le premium (1 mois)
         const { error } = await supabase.rpc('activate_premium', {
-          p_user_id: userId,
-          p_stripe_subscription_id: subscriptionId,
+          user_id_param: userId,
+          months: 1,
         });
 
         if (error) {
@@ -69,11 +69,17 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
         } else {
           console.log('✅ Premium activé pour user:', userId);
 
-          // Mettre à jour le customer_id Stripe dans la table subscriptions
+          // Créer/mettre à jour la subscription dans la table
           await supabase
             .from('subscriptions')
-            .update({ stripe_customer_id: customerId })
-            .eq('user_id', userId);
+            .upsert({
+              user_id: userId,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              status: 'active',
+              current_period_start: new Date().toISOString(),
+              current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            });
         }
         break;
       }
@@ -92,15 +98,15 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
         if (sub) {
           if (subscription.status === 'active') {
             console.log('✅ Abonnement renouvelé pour user:', sub.user_id);
-            // Renouveler le premium (30 jours supplémentaires)
+            // Renouveler le premium (1 mois)
             await supabase.rpc('activate_premium', {
-              p_user_id: sub.user_id,
-              p_stripe_subscription_id: subscription.id,
+              user_id_param: sub.user_id,
+              months: 1,
             });
           } else if (subscription.status === 'canceled' || subscription.status === 'unpaid') {
             console.log('❌ Abonnement annulé/impayé pour user:', sub.user_id);
             await supabase.rpc('deactivate_premium', {
-              p_user_id: sub.user_id,
+              user_id_param: sub.user_id,
             });
           }
         }
@@ -121,7 +127,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
         if (sub) {
           console.log('❌ Abonnement supprimé pour user:', sub.user_id);
           await supabase.rpc('deactivate_premium', {
-            p_user_id: sub.user_id,
+            user_id_param: sub.user_id,
           });
         }
         break;
