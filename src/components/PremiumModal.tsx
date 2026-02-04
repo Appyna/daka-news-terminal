@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { redirectToCheckout } from '../services/stripeService';
+import { AuthModal } from './AuthModal';
 import { COLORS } from '../constants';
 
 interface PremiumModalProps {
@@ -12,26 +13,183 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [showTransition, setShowTransition] = useState(false);
+  const [countdown, setCountdown] = useState(2);
+
+  // Détecter si l'user vient de se connecter
+  useEffect(() => {
+    if (user && showAuth) {
+      // User vient de se connecter → Afficher transition
+      setShowAuth(false);
+      setShowTransition(true);
+      
+      // Démarrer le compte à rebours
+      const timer = setTimeout(() => {
+        handleSubscribe();
+      }, 2000);
+
+      const countdownInterval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => {
+        clearTimeout(timer);
+        clearInterval(countdownInterval);
+      };
+    }
+  }, [user, showAuth]);
+
+  // Reset states quand le modal s'ouvre
+  useEffect(() => {
+    if (isOpen) {
+      setShowAuth(!user);
+      setShowTransition(false);
+      setCountdown(2);
+    }
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 
   const handleSubscribe = async () => {
-    if (!user) {
-      setError('Vous devez être connecté pour souscrire');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
     try {
+      setLoading(true);
+      setError(null);
+
+      if (!user) {
+        // Si pas connecté, afficher AuthModal
+        setShowAuth(true);
+        return;
+      }
+
+      // Si connecté, rediriger vers Stripe
       await redirectToCheckout(user.id, user.email!);
     } catch (err: any) {
       console.error('Erreur lors de la redirection vers Stripe:', err);
       setError(err.message || 'Une erreur est survenue lors de la redirection vers le paiement');
+    } finally {
       setLoading(false);
     }
   };
+
+  const handleSkipCountdown = () => {
+    handleSubscribe();
+  };
+
+  // Afficher AuthModal si pas connecté
+  if (showAuth) {
+    return (
+      <AuthModal
+        isOpen={true}
+        onClose={onClose}
+        initialTab="signup"
+      />
+    );
+  }
+
+  // Afficher transition après connexion
+  if (showTransition) {
+    return (
+      <>
+        {/* Overlay */}
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+          onClick={onClose}
+        >
+          {/* Modal */}
+          <div 
+            style={{
+              backgroundColor: COLORS.dark2,
+              borderRadius: '12px',
+              padding: '40px',
+              maxWidth: '500px',
+              width: '90%',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+              textAlign: 'center',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Checkmark animé */}
+            <div style={{
+              width: '80px',
+              height: '80px',
+              margin: '0 auto 24px',
+              borderRadius: '50%',
+              backgroundColor: COLORS.accentYellow1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <path 
+                  d="M10 20 L16 26 L30 12" 
+                  stroke={COLORS.dark1}
+                  strokeWidth="3" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+
+            {/* Message */}
+            <h2 style={{
+              color: COLORS.white,
+              fontSize: '24px',
+              marginBottom: '12px',
+              fontWeight: 600,
+            }}>
+              Compte créé avec succès !
+            </h2>
+            
+            <p style={{
+              color: COLORS.gray,
+              fontSize: '16px',
+              marginBottom: '32px',
+            }}>
+              Chargement des infos en illimité...
+            </p>
+
+            {/* Bouton avec compte à rebours */}
+            <button
+              onClick={handleSkipCountdown}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '16px',
+                backgroundColor: COLORS.accentYellow1,
+                color: COLORS.dark1,
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 600,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.7 : 1,
+              }}
+            >
+              {loading ? 'Redirection...' : `Continuer maintenant (${countdown}s)`}
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
