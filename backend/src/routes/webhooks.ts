@@ -70,16 +70,23 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
           console.log('✅ Premium activé pour user:', userId);
 
           // Créer/mettre à jour la subscription dans la table
-          await supabase
+          const { error: subError } = await supabase
             .from('subscriptions')
             .upsert({
               user_id: userId,
+              platform: 'stripe',
               stripe_customer_id: customerId,
               stripe_subscription_id: subscriptionId,
               status: 'active',
               current_period_start: new Date().toISOString(),
               current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             });
+
+          if (subError) {
+            console.error('❌ Erreur insertion subscription:', subError);
+          } else {
+            console.log('✅ Subscription créée dans la base:', subscriptionId);
+          }
         }
         break;
       }
@@ -103,11 +110,27 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
               user_id_param: sub.user_id,
               months: 1,
             });
+
+            // Mettre à jour le statut
+            await supabase
+              .from('subscriptions')
+              .update({
+                status: 'active',
+                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              })
+              .eq('stripe_customer_id', customerId);
           } else if (subscription.status === 'canceled' || subscription.status === 'unpaid') {
             console.log('❌ Abonnement annulé/impayé pour user:', sub.user_id);
             await supabase.rpc('deactivate_premium', {
               user_id_param: sub.user_id,
             });
+
+            // Mettre à jour le statut
+            await supabase
+              .from('subscriptions')
+              .update({ status: subscription.status })
+              .eq('stripe_customer_id', customerId);
           }
         }
         break;
