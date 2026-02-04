@@ -492,5 +492,6 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
         )}
       </div>
     </div>
+    </div>
   );
 }
