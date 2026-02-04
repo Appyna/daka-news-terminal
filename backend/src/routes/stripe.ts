@@ -1,7 +1,13 @@
 import express from 'express';
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
 
 const router = express.Router();
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // Initialiser Stripe avec la clé secrète
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -97,30 +103,10 @@ router.post('/create-portal-session', async (req, res) => {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: subscription.stripe_customer_id,
-      return_url: `${FRONTEND_URL}/`,
+      return_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/`,
     });
 
     console.log('✅ Portal session créée pour customer:', subscription.stripe_customer_id);
-
-    res.json({
-      success: true,
-      url: session.url,
-    });
-  } catch (error: any) {
-    console.error('❌ Erreur création portal session:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-});
-      });
-    }
-
-    const session = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/profile`,
-    });
 
     res.json({
       success: true,
