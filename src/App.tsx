@@ -5,12 +5,15 @@ import NewsColumn from './components/NewsColumn';
 import Footer from './components/Footer';
 import NewsModal from './components/NewsModal';
 import TopBar from '../components/TopBar';
+import { PremiumModal } from './components/PremiumModal';
+import { useAuth } from './contexts/AuthContext';
 import { NewsItem, NewsColumn as NewsColumnType } from './types-old';
 import { COLORS } from './constants';
 
 const API_BASE_URL = 'https://daka-news-backend.onrender.com/api';
 
 const App: React.FC = () => {
+  const { isPremium } = useAuth();
   const [allColumns, setAllColumns] = useState<NewsColumnType[]>([]);
   const [selectedNewsItem, setSelectedNewsItem] = useState<NewsItem | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -20,6 +23,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   // Détecter le retour du paiement Stripe
   useEffect(() => {
@@ -160,6 +164,11 @@ const App: React.FC = () => {
         currentCountry={currentCountry}
         currentSource={currentSource}
         onSelectFlux={handleSelectFlux}
+        isPremium={isPremium}
+        onPremiumRequired={() => {
+          setShowPremiumModal(true);
+          setMenuOpen(false);
+        }}
       />
 
       <main className="flex-1 min-h-0 w-full overflow-hidden">
@@ -220,6 +229,10 @@ const App: React.FC = () => {
           onClose={() => setSelectedNewsItem(null)} 
         />
       )}
+      <PremiumModal 
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+      />
     </div>
   );
 };

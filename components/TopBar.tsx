@@ -100,15 +100,22 @@ const TopBar: React.FC = () => {
                         onClick={async () => {
                           setShowUserMenu(false);
                           try {
+                            console.log('🔍 Opening portal for user:', user?.id);
+                            const url = 'https://daka-news-backend.onrender.com/api/stripe/create-portal-session';
+                            console.log('🔍 URL:', url);
                             // Récupérer le customer_id depuis la DB
-                            const response = await fetch(`https://daka-news-backend.onrender.com/api/stripe/create-portal-session`, {
+                            const response = await fetch(url, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ userId: user?.id }),
                             });
+                            console.log('🔍 Response status:', response.status);
                             const data = await response.json();
+                            console.log('🔍 Response data:', data);
                             if (data.success && data.url) {
                               window.location.href = data.url;
+                            } else {
+                              alert(`Erreur: ${data.error || 'Impossible d\'ouvrir le portail'}`);
                             }
                           } catch (err) {
                             console.error('Erreur ouverture portail:', err);

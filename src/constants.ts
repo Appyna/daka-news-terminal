@@ -7,3 +7,13 @@ export const COLORS = {
   white: "#FFFFFF",
   gray: "#C0C0C0"
 };
+
+/**
+ * Sources accessibles gratuitement (utilisateurs BASIC)
+ * Toutes les autres sources nécessitent un abonnement Premium
+ */
+export const FREE_SOURCES = [
+  "Ynet",        // Israel
+  "BFM TV",      // France
+  "BBC World"    // Monde
+];

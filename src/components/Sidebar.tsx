@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { COLORS } from '../constants';
+import { COLORS, FREE_SOURCES } from '../constants';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -8,6 +8,8 @@ interface SidebarProps {
   currentCountry: string;
   currentSource: string;
   onSelectFlux: (country: string, source: string) => void;
+  isPremium: boolean;
+  onPremiumRequired: () => void;
 }
 
 const fluxByCountry = {
@@ -22,7 +24,21 @@ const fluxByCountry = {
   ]
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, currentSource, onSelectFlux }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, currentSource, onSelectFlux, isPremium, onPremiumRequired }) => {
+  const handleSourceClick = (country: string, source: string) => {
+    const isSourceFree = FREE_SOURCES.includes(source);
+    
+    if (!isSourceFree && !isPremium) {
+      // Source premium et utilisateur non-premium → afficher popup
+      onPremiumRequired();
+      return;
+    }
+    
+    // Source gratuite ou utilisateur premium → changer de source
+    onSelectFlux(country, source);
+    onClose();
+  };
+
   return (
     <>
       {/* Overlay */}
@@ -78,18 +94,31 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
                 <div className="ml-4 space-y-0.5">
                   {sources.map((source) => {
                     const isActive = currentCountry === country && currentSource === source;
+                    const isSourceFree = FREE_SOURCES.includes(source);
+                    const isLocked = !isSourceFree && !isPremium;
+                    
                     return (
                       <button
                         key={source}
-                        onClick={() => onSelectFlux(country, source)}
+                        onClick={() => handleSourceClick(country, source)}
                         className={`w-full text-left px-3 py-2 rounded-md transition-all text-xs flex items-center gap-2 ${
                           isActive 
                             ? 'bg-yellow-500/15 text-yellow-500 font-semibold border-l-2 border-yellow-500' 
                             : 'hover:bg-white/5 text-white/60 hover:text-white/80 border-l-2 border-transparent'
-                        }`}
+                        } ${isLocked ? 'opacity-70' : ''}`}
                       >
                         <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-yellow-500' : 'bg-white/20'}`} />
-                        {source}
+                        <span className="flex-1">{source}</span>
+                        {isLocked && (
+                          <svg 
+                            className="w-3 h-3 flex-shrink-0" 
+                            style={{ color: COLORS.accentYellow1 }}
+                            fill="currentColor" 
+                            viewBox="0 0 20 20"
+                          >
+                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
                       </button>
                     );
                   })}
