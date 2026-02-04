@@ -175,14 +175,19 @@ const App: React.FC = () => {
         {/* Message de confirmation paiement */}
         {showPaymentSuccess && (
           <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
-            <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-gray-900 px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <div 
+              className="px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3"
+              style={{
+                background: `linear-gradient(135deg, ${COLORS.accentYellow1}, ${COLORS.accentYellow2})`,
+                color: COLORS.dark1
+              }}
+            >
+              <svg className="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
-              <div>
-                <p className="font-bold">Paiement réussi</p>
-                <p className="text-sm">Bienvenue dans DAKA News Premium</p>
-              </div>
+              <p className="font-bold text-base sm:text-lg whitespace-nowrap">
+                Bienvenue dans DAKA News Premium
+              </p>
             </div>
           </div>
         )}
