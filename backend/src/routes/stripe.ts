@@ -75,6 +75,7 @@ router.post('/create-checkout-session', async (req, res) => {
 /**
  * POST /api/stripe/create-portal-session
  * Crée une session Customer Portal pour gérer l'abonnement
+ * Version: 2026-02-04
  */
 router.post('/create-portal-session', async (req, res) => {
   try {
