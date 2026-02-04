@@ -19,6 +19,20 @@ const App: React.FC = () => {
   const [currentSource, setCurrentSource] = useState('Ynet');
   const [isLoading, setIsLoading] = useState(true);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+
+  // Détecter le retour du paiement Stripe
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      setShowPaymentSuccess(true);
+      // Nettoyer l'URL après 5 secondes
+      setTimeout(() => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        setShowPaymentSuccess(false);
+      }, 5000);
+    }
+  }, []);
 
   // Détecter le retour du magic link de réinitialisation
   useEffect(() => {
@@ -149,6 +163,21 @@ const App: React.FC = () => {
       />
 
       <main className="flex-1 min-h-0 w-full overflow-hidden">
+        {/* Message de confirmation paiement */}
+        {showPaymentSuccess && (
+          <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
+            <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-gray-900 px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <div>
+                <p className="font-bold">Paiement réussi</p>
+                <p className="text-sm">Bienvenue dans DAKA News Premium</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {filteredColumns.length === 0 ? (
           <div className="flex items-center justify-center h-full" style={{ backgroundColor: '#1C1940' }}>
             <div className="relative">

@@ -15,6 +15,8 @@ import sourcesRouter from './routes/sources';
 import adminRouter from './routes/admin';
 import stripeRouter from './routes/stripe';
 import webhooksRouter from './routes/webhooks';
+import appleWebhooksRouter from './routes/apple-webhooks';
+import googleWebhooksRouter from './routes/google-webhooks';
 
 // CRON
 import { startAllCrons } from './cron/collector';
@@ -48,6 +50,8 @@ app.use(cors({
 // ⚠️ IMPORTANT : Webhook Stripe doit être AVANT express.json()
 // Car Stripe a besoin du raw body
 app.use('/api/webhooks', webhooksRouter);
+app.use('/api/webhooks', appleWebhooksRouter);
+app.use('/api/webhooks', googleWebhooksRouter);
 
 // Parse JSON
 app.use(express.json());

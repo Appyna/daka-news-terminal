@@ -72,12 +72,48 @@ router.post('/create-checkout-session', async (req, res) => {
  */
 router.post('/create-portal-session', async (req, res) => {
   try {
-    const { customerId } = req.body;
+    const { userId } = req.body;
 
-    if (!customerId) {
+    if (!userId) {
       return res.status(400).json({
         success: false,
-        error: 'customerId requis',
+        error: 'userId requis',
+      });
+    }
+
+    // Récupérer le customer_id depuis Supabase
+    const { data: subscription, error } = await supabase
+      .from('subscriptions')
+      .select('stripe_customer_id')
+      .eq('user_id', userId)
+      .single();
+
+    if (error || !subscription?.stripe_customer_id) {
+      return res.status(404).json({
+        success: false,
+        error: 'Abonnement non trouvé',
+      });
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: subscription.stripe_customer_id,
+      return_url: `${FRONTEND_URL}/`,
+    });
+
+    console.log('✅ Portal session créée pour customer:', subscription.stripe_customer_id);
+
+    res.json({
+      success: true,
+      url: session.url,
+    });
+  } catch (error: any) {
+    console.error('❌ Erreur création portal session:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
       });
     }
 

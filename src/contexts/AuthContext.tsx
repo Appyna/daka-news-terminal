@@ -152,6 +152,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: { message: 'Ce nom d\'utilisateur est déjà utilisé. Veuillez en choisir un autre.' } as AuthError };
       }
 
+      // Vérifier si l'email est déjà utilisé
+      const { data: existingEmail } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (existingEmail) {
+        return { error: { message: 'Cette adresse email est déjà utilisée. Veuillez vous connecter ou utiliser une autre adresse.' } as AuthError };
+      }
+
       // Créer le compte
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -163,7 +174,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      if (error) return { error };
+      if (error) {
+        // Traduire les erreurs Supabase en français
+        if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+          return { error: { message: 'Cette adresse email est déjà utilisée. Veuillez vous connecter ou utiliser une autre adresse.' } as AuthError };
+        }
+        return { error };
+      }
 
       // Mettre à jour le username dans le profil (car trigger crée avec email avant @)
       if (data.user) {

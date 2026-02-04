@@ -44,12 +44,6 @@ const TopBar: React.FC = () => {
       <Logo />
 
       <div className="flex items-center gap-6">
-        {/* Live indicator */}
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Live</span>
-        </div>
-
         {/* Auth section */}
         {loading ? (
           <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
@@ -59,16 +53,26 @@ const TopBar: React.FC = () => {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 hover:bg-white/5 px-3 py-2 rounded-lg transition-colors"
             >
-              {/* Avatar */}
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                {profile.username.charAt(0).toUpperCase()}
+              {/* Avatar avec badge premium */}
+              <div className="relative">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                  {profile.username.charAt(0).toUpperCase()}
+                </div>
+                {isPremium && (
+                  <div className="absolute -bottom-0.5 -right-0.5">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="url(#premium-gradient)">
+                      <defs>
+                        <linearGradient id="premium-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" style={{ stopColor: '#8B5CF6', stopOpacity: 1 }} />
+                          <stop offset="100%" style={{ stopColor: '#fbbf24', stopOpacity: 1 }} />
+                        </linearGradient>
+                      </defs>
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                  </div>
+                )}
               </div>
-              <span className="text-sm text-white/90 font-medium">{profile.username}</span>
-              {isPremium && (
-                <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded">
-                  PREMIUM
-                </span>
-              )}
+              <span className="text-sm text-white/90 font-medium truncate max-w-[120px]">{profile.username}</span>
             </button>
 
             {/* Dropdown menu */}
@@ -80,8 +84,8 @@ const TopBar: React.FC = () => {
                 />
                 <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-xl z-40 border border-white/10" style={{ backgroundColor: COLORS.dark2 }}>
                   <div className="p-3 border-b border-white/10">
-                    <p className="text-sm text-white/90 font-medium">{profile.username}</p>
-                    <p className="text-xs text-white/50">{profile.email}</p>
+                    <p className="text-sm text-white/90 font-medium truncate" title={profile.username}>{profile.username}</p>
+                    <p className="text-xs text-white/50 truncate" title={profile.email}>{profile.email}</p>
                   </div>
                   
                   <div className="py-2">
@@ -91,7 +95,31 @@ const TopBar: React.FC = () => {
                     <button className="w-full px-4 py-2 text-left text-sm text-white/70 hover:bg-white/5 transition-colors">
                       Préférences
                     </button>
-                    {!isPremium && (
+                    {isPremium ? (
+                      <button 
+                        onClick={async () => {
+                          setShowUserMenu(false);
+                          try {
+                            // Récupérer le customer_id depuis la DB
+                            const response = await fetch(`https://daka-news-backend.onrender.com/api/stripe/create-portal-session`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ userId: user?.id }),
+                            });
+                            const data = await response.json();
+                            if (data.success && data.url) {
+                              window.location.href = data.url;
+                            }
+                          } catch (err) {
+                            console.error('Erreur ouverture portail:', err);
+                            alert('Impossible d\'ouvrir le portail de gestion');
+                          }
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-yellow-500 hover:bg-white/5 transition-colors font-medium"
+                      >
+                        ⚙️ Gérer mon abonnement
+                      </button>
+                    ) : (
                       <button 
                         onClick={() => {
                           setShowPremiumModal(true);

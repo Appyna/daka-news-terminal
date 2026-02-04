@@ -325,12 +325,12 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                    placeholder="Minimum 3 caractères"
+                    placeholder="3 à 20 caractères"
                     required
                     minLength={3}
-                    maxLength={30}
+                    maxLength={20}
                     pattern="[a-zA-Z0-9_\-]+"
-                    title="Lettres, chiffres, tirets et underscores uniquement"
+                    title="Lettres, chiffres, tirets et underscores uniquement (max 20 caractères)"
                   />
                 </div>
               )}
@@ -347,6 +347,7 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="votre@email.com"
                   required
+                  maxLength={254}
                 />
               </div>
 
@@ -363,6 +364,7 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                   placeholder="Minimum 6 caractères"
                   required
                   minLength={6}
+                  maxLength={128}
                 />
                 {activeTab === 'login' && (
                   <button

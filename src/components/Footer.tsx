@@ -25,15 +25,17 @@ const Footer: React.FC<FooterProps> = ({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Rechercher un mot-clé..."
+          placeholder="Recherche"
           className="bg-transparent border-none outline-none text-xs text-white/80 w-full font-medium"
         />
       </div>
 
       <div className="flex-1" />
 
-      <div className="text-[10px] text-white/20 font-mono tracking-tighter">
-        DAKA News Terminal • v1.0
+      {/* Live indicator */}
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Live</span>
       </div>
     </footer>
   );
