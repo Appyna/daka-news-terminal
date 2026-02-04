@@ -14,13 +14,13 @@ interface SidebarProps {
 
 const fluxByCountry = {
   "Israel": [
-    "Arutz 7", "Arutz 14", "Israel Hayom", "Walla", "Ynet"
+    "Ynet", "Arutz 7", "Arutz 14", "Israel Hayom", "Walla"
   ],
   "France": [
     "BFM TV", "France Info", "Le Monde"
   ],
   "Monde": [
-    "Reuters", "ANADOLU (Agence de presse turque)", "BBC World", "Bloomberg", "FOXNews", "New York Times", "POLITICO", "RT - Russie", "TASS (Agence de presse russe)"
+    "BBC World", "Reuters", "ANADOLU (Agence de presse turque)", "Bloomberg", "FOXNews", "New York Times", "POLITICO", "RT - Russie", "TASS (Agence de presse russe)"
   ]
 };
 
