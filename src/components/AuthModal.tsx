@@ -283,11 +283,11 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
           {isPasswordReset ? (
             /* Formulaire de réinitialisation du mot de passe */
             <>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm mb-4" style={{ color: COLORS.gray }}>
                 Entrez votre nouveau mot de passe ci-dessous.
               </p>
               <div>
-                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="newPassword" className="block text-sm font-medium mb-1" style={{ color: COLORS.white }}>
                   Nouveau mot de passe
                 </label>
                 <input
@@ -295,7 +295,14 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                   id="newPassword"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-3 rounded-lg outline-none transition-all"
+                  style={{
+                    backgroundColor: COLORS.dark3,
+                    border: `1px solid ${COLORS.dark3}`,
+                    color: COLORS.white
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = COLORS.accentYellow1}
+                  onBlur={(e) => e.currentTarget.style.borderColor = COLORS.dark3}
                   placeholder="Minimum 6 caractères"
                   required
                   minLength={6}
@@ -303,7 +310,7 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                 />
               </div>
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1" style={{ color: COLORS.white }}>
                   Confirmer le mot de passe
                 </label>
                 <input
@@ -311,7 +318,14 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                   id="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-3 rounded-lg outline-none transition-all"
+                  style={{
+                    backgroundColor: COLORS.dark3,
+                    border: `1px solid ${COLORS.dark3}`,
+                    color: COLORS.white
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = COLORS.accentYellow1}
+                  onBlur={(e) => e.currentTarget.style.borderColor = COLORS.dark3}
                   placeholder="Confirmez votre mot de passe"
                   required
                   minLength={6}
@@ -321,11 +335,11 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
           ) : showOtpInput ? (
             /* Champ code OTP inscription */
             <>
-              <p className="text-sm text-gray-600 mb-4">
-                Un code à 6 chiffres a été envoyé à <strong>{pendingEmail}</strong>
+              <p className="text-sm mb-4" style={{ color: COLORS.gray }}>
+                Un code à 6 chiffres a été envoyé à <strong style={{ color: COLORS.white }}>{pendingEmail}</strong>
               </p>
               <div>
-                <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="otp" className="block text-sm font-medium mb-1" style={{ color: COLORS.white }}>
                   Code de vérification
                 </label>
                 <input
@@ -333,7 +347,14 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                   id="otp"
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center text-2xl font-mono tracking-widest"
+                  className="w-full px-4 py-3 rounded-lg text-center text-2xl font-mono tracking-widest outline-none transition-all"
+                  style={{
+                    backgroundColor: COLORS.dark3,
+                    border: `1px solid ${COLORS.dark3}`,
+                    color: COLORS.white
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = COLORS.accentYellow1}
+                  onBlur={(e) => e.currentTarget.style.borderColor = COLORS.dark3}
                   placeholder="000000"
                   required
                   maxLength={6}
@@ -346,7 +367,8 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                 type="button"
                 onClick={handleResendOtp}
                 disabled={loading}
-                className="w-full text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                className="text-sm hover:underline disabled:opacity-50"
+                style={{ color: COLORS.accentYellow1 }}
               >
                 Renvoyer le code
               </button>
@@ -356,7 +378,7 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
             <>
               {activeTab === 'signup' && (
                 <div>
-                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="username" className="block text-sm font-medium mb-1" style={{ color: COLORS.white }}>
                     Nom d'utilisateur
                   </label>
                   <input
@@ -364,7 +386,14 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                     id="username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 rounded-lg outline-none transition-all"
+                    style={{
+                      backgroundColor: COLORS.dark3,
+                      border: `1px solid ${COLORS.dark3}`,
+                      color: COLORS.white
+                    }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = COLORS.accentYellow1}
+                    onBlur={(e) => e.currentTarget.style.borderColor = COLORS.dark3}
                     placeholder="3 à 20 caractères"
                     required
                     minLength={3}
@@ -376,7 +405,7 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
               )}
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium mb-1" style={{ color: COLORS.white }}>
                   Email
                 </label>
                 <input
@@ -384,7 +413,14 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 rounded-lg outline-none transition-all"
+                  style={{
+                    backgroundColor: COLORS.dark3,
+                    border: `1px solid ${COLORS.dark3}`,
+                    color: COLORS.white
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = COLORS.accentYellow1}
+                  onBlur={(e) => e.currentTarget.style.borderColor = COLORS.dark3}
                   placeholder="votre@email.com"
                   required
                   maxLength={254}
@@ -392,7 +428,7 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="password" className="block text-sm font-medium mb-1" style={{ color: COLORS.white }}>
                   Mot de passe
                 </label>
                 <input
@@ -400,7 +436,14 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 rounded-lg outline-none transition-all"
+                  style={{
+                    backgroundColor: COLORS.dark3,
+                    border: `1px solid ${COLORS.dark3}`,
+                    color: COLORS.white
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = COLORS.accentYellow1}
+                  onBlur={(e) => e.currentTarget.style.borderColor = COLORS.dark3}
                   placeholder="Minimum 6 caractères"
                   required
                   minLength={6}
@@ -410,19 +453,32 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
                   <button
                     type="button"
                     onClick={handleForgotPassword}
-                    className="text-sm text-blue-600 hover:text-blue-700 mt-1"
+                    className="text-sm hover:underline mt-1"
+                    style={{ color: COLORS.accentYellow1 }}
                   >
                     Mot de passe oublié ?
                   </button>
                 )}
               </div>
+
+              {/* Phrase CGU pour inscription */}
+              {activeTab === 'signup' && (
+                <p className="text-[10px] text-center leading-relaxed" style={{ color: COLORS.gray }}>
+                  En m'inscrivant, j'accepte les{' '}
+                  <span className="hover:underline cursor-pointer" style={{ color: COLORS.accentYellow1 }}>
+                    conditions d'utilisation
+                  </span>
+                  {' '}et de vente.
+                </p>
+              )}
             </>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full font-semibold py-3 rounded-lg transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            style={{ backgroundColor: COLORS.accentYellow1, color: COLORS.dark1 }}
           >
             {loading ? 'Chargement...' : isPasswordReset ? 'Mettre à jour le mot de passe' : showOtpInput ? 'Vérifier le code' : activeTab === 'login' ? 'Se connecter' : 'Créer mon compte'}
           </button>
@@ -430,7 +486,7 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
 
         {/* Info premium */}
         {activeTab === 'signup' && !showOtpInput && (
-          <p className="mt-4 text-xs text-center text-gray-500">
+          <p className="mt-4 text-xs text-center" style={{ color: COLORS.gray }}>
             Compte gratuit avec accès limité. Passez Premium pour un accès illimité à toutes les sources.
           </p>
         )}
