@@ -46,33 +46,31 @@ const TopBar: React.FC = () => {
       <div className="flex items-center gap-6">
         {/* Auth section */}
         {loading ? (
-          <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
+          <div className="w-10 h-10 rounded-full bg-white/10 animate-pulse" />
         ) : user && profile ? (
-          <div className="relative">
+          <div className="relative ml-auto">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 hover:bg-white/5 px-3 py-2 rounded-lg transition-colors"
+              className="hover:opacity-80 transition-opacity"
             >
               {/* Avatar avec badge premium */}
               <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base"
+                  style={{
+                    background: `linear-gradient(135deg, ${COLORS.accentYellow1}, ${COLORS.accentYellow2})`
+                  }}
+                >
                   {profile.username.charAt(0).toUpperCase()}
                 </div>
                 {isPremium && (
-                  <div className="absolute -bottom-0.5 -right-0.5">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="url(#premium-gradient)">
-                      <defs>
-                        <linearGradient id="premium-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" style={{ stopColor: '#8B5CF6', stopOpacity: 1 }} />
-                          <stop offset="100%" style={{ stopColor: '#fbbf24', stopOpacity: 1 }} />
-                        </linearGradient>
-                      </defs>
+                  <div className="absolute -bottom-0.5 -right-0.5 bg-white/10 rounded-full p-0.5">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill={COLORS.accentYellow1}>
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
                   </div>
                 )}
               </div>
-              <span className="text-sm text-white/90 font-medium truncate max-w-[120px]">{profile.username}</span>
             </button>
 
             {/* Dropdown menu */}
@@ -152,12 +150,21 @@ const TopBar: React.FC = () => {
             )}
           </div>
         ) : (
-          <button
-            onClick={() => setShowAuthModal(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            Se connecter
-          </button>
+          <div className="relative ml-auto">
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="hover:opacity-80 transition-opacity"
+            >
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: COLORS.dark3 }}
+              >
+                <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            </button>
+          </div>
         )}
       </div>
 

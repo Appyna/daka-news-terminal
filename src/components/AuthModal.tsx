@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { COLORS } from '../constants';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -175,68 +176,107 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-md bg-white rounded-xl shadow-2xl p-6 m-4">
-        {/* Bouton fermer */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold"
-        >
-          ×
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div 
+        className="relative w-full max-w-md rounded-2xl shadow-2xl border border-yellow-500/20 overflow-hidden"
+        style={{ backgroundColor: COLORS.dark2 }}
+      >
+        {/* Header avec gradient jaune */}
+        <div 
+          className="h-1 w-full"
+          style={{
+            background: `linear-gradient(90deg, ${COLORS.accentYellow1}, ${COLORS.accentYellow2})`
+          }}
+        />
 
-        {/* Titre */}
-        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
-          {isPasswordReset
-            ? 'Nouveau mot de passe'
-            : showOtpInput 
-            ? 'Vérification email' 
-            : activeTab === 'login' ? 'Connexion' : 'Créer un compte'}
-        </h2>
+        <div className="p-8">
+          {/* Bouton fermer */}
+          <button
+            onClick={handleClose}
+            className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
-        {/* Tabs - masquer si OTP ou reset password */}
-        {!showOtpInput && !isPasswordReset && (
-          <div className="flex border-b border-gray-200 mb-6">
-            <button
-              onClick={() => {
-                setActiveTab('login');
-                resetForm();
+          {/* Titre */}
+          <h2 
+            className="text-2xl font-bold text-center mb-6"
+            style={{ color: COLORS.white }}
+          >
+            {isPasswordReset
+              ? 'Nouveau mot de passe'
+              : showOtpInput 
+              ? 'Vérification email' 
+              : activeTab === 'login' ? 'Connexion' : 'Créer un compte'}
+          </h2>
+
+          {/* Tabs - masquer si OTP ou reset password */}
+          {!showOtpInput && !isPasswordReset && (
+            <div className="flex border-b mb-6" style={{ borderColor: COLORS.dark3 }}>
+              <button
+                onClick={() => {
+                  setActiveTab('login');
+                  resetForm();
+                }}
+                className={`flex-1 py-3 text-center font-medium transition-all ${
+                  activeTab === 'login'
+                    ? 'border-b-2'
+                    : ''
+                }`}
+                style={{
+                  color: activeTab === 'login' ? COLORS.accentYellow1 : COLORS.gray,
+                  borderColor: activeTab === 'login' ? COLORS.accentYellow1 : 'transparent'
+                }}
+              >
+                Connexion
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('signup');
+                  resetForm();
+                }}
+                className={`flex-1 py-3 text-center font-medium transition-all ${
+                  activeTab === 'signup'
+                    ? 'border-b-2'
+                    : ''
+                }`}
+                style={{
+                  color: activeTab === 'signup' ? COLORS.accentYellow1 : COLORS.gray,
+                  borderColor: activeTab === 'signup' ? COLORS.accentYellow1 : 'transparent'
+                }}
+              >
+                Inscription
+              </button>
+            </div>
+          )}
+
+          {/* Messages */}
+          {error && (
+            <div 
+              className="mb-4 p-3 border rounded-lg text-sm"
+              style={{
+                backgroundColor: '#7f1d1d20',
+                borderColor: '#dc262680',
+                color: '#fca5a5'
               }}
-              className={`flex-1 py-2 text-center font-medium transition-colors ${
-                activeTab === 'login'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
             >
-              Connexion
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('signup');
-                resetForm();
+              {error}
+            </div>
+          )}
+          {success && (
+            <div 
+              className="mb-4 p-3 border rounded-lg text-sm"
+              style={{
+                backgroundColor: `${COLORS.accentYellow1}20`,
+                borderColor: `${COLORS.accentYellow1}80`,
+                color: COLORS.accentYellow1
               }}
-              className={`flex-1 py-2 text-center font-medium transition-colors ${
-                activeTab === 'signup'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
             >
-              Inscription
-            </button>
-          </div>
-        )}
-
-        {/* Messages */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-            {success}
-          </div>
-        )}
+              {success}
+            </div>
+          )}
 
         {/* Formulaire */}
         <form onSubmit={handleSubmit} className="space-y-4">

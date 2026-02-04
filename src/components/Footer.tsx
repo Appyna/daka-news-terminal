@@ -25,7 +25,7 @@ const Footer: React.FC<FooterProps> = ({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Recherche"
+          placeholder="Rechercher"
           className="bg-transparent border-none outline-none text-xs text-white/80 w-full font-medium"
         />
       </div>

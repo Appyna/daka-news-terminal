@@ -58,8 +58,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
       >
         <div className="flex items-center justify-between p-4 border-b border-white/5">
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-white/90">Sources</h2>
-            <p className="text-[10px] text-white/40 mt-0.5">Sélectionner un flux</p>
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-white/90">Live</h2>
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            </div>
+            <p className="text-[10px] text-white/40">Sélectionner une source d'infos</p>
           </div>
           <button
             onClick={onClose}
@@ -129,11 +132,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
         </nav>
         
         <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-2 text-[10px]">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="font-semibold text-white/50 uppercase tracking-wider">Live</span>
-            <span className="text-white/30">•</span>
-            <span className="text-white/30 font-mono">{Object.values(fluxByCountry).flat().length} sources</span>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[9px] text-white/40 leading-relaxed">
+              Actualités traduites par intelligence artificielle. Des erreurs peuvent survenir.
+            </p>
+            <button
+              className="flex-shrink-0 text-white/40 hover:text-white/70 transition-colors"
+              aria-label="Paramètres"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
