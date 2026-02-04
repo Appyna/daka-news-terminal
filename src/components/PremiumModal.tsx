@@ -66,8 +66,6 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
 
             {/* Liste des avantages */}
             <div className="mt-6 space-y-3">
-            {/* Liste des avantages */}
-            <div className="mt-6 space-y-3">
               <div className="flex items-start gap-3 text-white/80">
                 <div 
                   className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
