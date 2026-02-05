@@ -60,13 +60,13 @@ const TopBar: React.FC = () => {
                   style={{
                     backgroundColor: COLORS.dark2,
                     color: COLORS.accentYellow1,
-                    boxShadow: `0 0 0 0.3px ${COLORS.accentYellow1}, 0 4px 15px rgba(245, 197, 24, 0.2)`
+                    boxShadow: `0 0 0 0.4px ${COLORS.accentYellow1}, 0 4px 15px rgba(245, 197, 24, 0.2)`
                   }}
                 >
                   {profile.username.charAt(0).toUpperCase()}
                 </div>
                 {isPremium && (
-                  <div className="absolute -bottom-0.5 -right-0.5 bg-white/10 rounded-full p-0.5">
+                  <div className="absolute -bottom-1 -right-1">
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill={COLORS.accentYellow1}>
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
