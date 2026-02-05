@@ -58,7 +58,7 @@ const TopBar: React.FC = () => {
                 <div 
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base"
                   style={{
-                    background: `linear-gradient(135deg, ${COLORS.accentYellow1}, #8B7AFF)`
+                    background: `linear-gradient(135deg, ${COLORS.accentYellow1} 0%, ${COLORS.accentYellow2} 60%, #9B8AFF 100%)`
                   }}
                 >
                   {profile.username.charAt(0).toUpperCase()}

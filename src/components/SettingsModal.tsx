@@ -33,14 +33,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </svg>
           </button>
 
-          {/* Titre */}
-          <h2 
-            className="text-2xl font-bold text-center mb-6"
-            style={{ color: COLORS.white }}
-          >
-            Paramètres
-          </h2>
-
           {/* Menu des liens */}
           <div className="space-y-3">
             <button
@@ -51,19 +43,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span className="text-sm">Conditions Générales d'Utilisation</span>
-              </div>
-            </button>
-
-            <button
-              className="w-full text-left px-4 py-3 rounded-lg hover:bg-white/5 transition-colors"
-              style={{ color: COLORS.white }}
-            >
-              <div className="flex items-center gap-3">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span className="text-sm">Conditions Générales de Vente</span>
+                <span className="text-sm">Conditions Générales d'Utilisation et de Vente</span>
               </div>
             </button>
 
@@ -90,13 +70,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <span className="text-sm">Nous contacter</span>
               </div>
             </button>
-          </div>
-
-          {/* Info version */}
-          <div className="mt-6 pt-4 border-t border-white/10 text-center">
-            <p className="text-xs" style={{ color: COLORS.gray }}>
-              DAKA News Terminal v1.0.0
-            </p>
           </div>
         </div>
       </div>
