@@ -56,7 +56,7 @@ const TopBar: React.FC = () => {
               {/* Avatar avec badge premium */}
               <div className="relative">
                 <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-light text-xl shadow-lg"
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-light text-2xl shadow-lg"
                   style={{
                     backgroundColor: COLORS.dark2,
                     color: COLORS.accentYellow1,
