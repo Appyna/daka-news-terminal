@@ -66,7 +66,7 @@ const TopBar: React.FC = () => {
                   {profile.username.charAt(0).toUpperCase()}
                 </div>
                 {isPremium && (
-                  <div className="absolute -bottom-0.5 -right-0.5" style={{ transform: 'translate(15%, 15%)' }}>
+                  <div className="absolute -bottom-0.5 -right-0.5" style={{ transform: 'translate(8%, 8%)' }}>
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill={COLORS.accentYellow1}>
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
