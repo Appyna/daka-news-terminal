@@ -279,7 +279,7 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
           )}
 
         {/* Formulaire */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {isPasswordReset ? (
             /* Formulaire de réinitialisation du mot de passe */
             <>
@@ -483,13 +483,6 @@ export function AuthModal({ isOpen, onClose, initialTab = 'login' }: AuthModalPr
             {loading ? 'Chargement...' : isPasswordReset ? 'Mettre à jour le mot de passe' : showOtpInput ? 'Vérifier le code' : activeTab === 'login' ? 'Se connecter' : 'Créer mon compte'}
           </button>
         </form>
-
-        {/* Info premium */}
-        {activeTab === 'signup' && !showOtpInput && (
-          <p className="mt-4 text-xs text-center" style={{ color: COLORS.gray }}>
-            Compte gratuit avec accès limité. Passez Premium pour un accès illimité à toutes les sources.
-          </p>
-        )}
       </div>
     </div>
     </div>

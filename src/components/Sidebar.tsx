@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { COLORS, FREE_SOURCES } from '../constants';
+import SettingsModal from './SettingsModal';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -25,6 +26,8 @@ const fluxByCountry = {
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, currentSource, onSelectFlux, isPremium, onPremiumRequired }) => {
+  const [showSettings, setShowSettings] = React.useState(false);
+
   const handleSourceClick = (country: string, source: string) => {
     const isSourceFree = FREE_SOURCES.includes(source);
     
@@ -133,10 +136,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
         
         <div className="p-4 border-t border-white/5">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[9px] text-white/40 leading-relaxed">
+            <p className="text-[11px] text-white/40 leading-relaxed">
               Actualités traduites par intelligence artificielle. Des erreurs peuvent survenir.
             </p>
             <button
+              onClick={() => setShowSettings(true)}
               className="flex-shrink-0 text-white/40 hover:text-white/70 transition-colors"
               aria-label="Paramètres"
             >
@@ -148,6 +152,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
           </div>
         </div>
       </div>
+
+      {/* Modal des paramètres */}
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </>
   );
 };
