@@ -58,9 +58,10 @@ const TopBar: React.FC = () => {
                 <div 
                   className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-base shadow-lg"
                   style={{
-                    backgroundColor: COLORS.accentYellow1,
-                    color: COLORS.dark2,
-                    boxShadow: '0 4px 15px rgba(245, 197, 24, 0.4)'
+                    backgroundColor: COLORS.dark2,
+                    color: COLORS.accentYellow1,
+                    border: `1px solid ${COLORS.accentYellow1}`,
+                    boxShadow: '0 4px 15px rgba(245, 197, 24, 0.2)'
                   }}
                 >
                   {profile.username.charAt(0).toUpperCase()}
