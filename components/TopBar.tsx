@@ -56,7 +56,7 @@ const TopBar: React.FC = () => {
               {/* Avatar avec badge premium */}
               <div className="relative">
                 <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-light text-xl shadow-lg"
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-light text-[1.30rem] shadow-lg"
                   style={{
                     backgroundColor: COLORS.dark2,
                     color: COLORS.accentYellow1,
@@ -89,12 +89,6 @@ const TopBar: React.FC = () => {
                   </div>
                   
                   <div className="py-2">
-                    <button className="w-full px-4 py-2 text-left text-sm text-white/70 hover:bg-white/5 transition-colors">
-                      Mon profil
-                    </button>
-                    <button className="w-full px-4 py-2 text-left text-sm text-white/70 hover:bg-white/5 transition-colors">
-                      Préférences
-                    </button>
                     {isPremium ? (
                       <button 
                         onClick={async () => {
@@ -124,7 +118,7 @@ const TopBar: React.FC = () => {
                         }}
                         className="w-full px-4 py-2 text-left text-sm text-yellow-500 hover:bg-white/5 transition-colors font-medium"
                       >
-                        ⚙️ Gérer mon abonnement
+                        Gérer mon abonnement
                       </button>
                     ) : (
                       <button 
@@ -134,7 +128,7 @@ const TopBar: React.FC = () => {
                         }}
                         className="w-full px-4 py-2 text-left text-sm text-yellow-500 hover:bg-white/5 transition-colors font-medium"
                       >
-                        ⭐ Passer Premium
+                        Accès illimité aux infos
                       </button>
                     )}
                     <button 

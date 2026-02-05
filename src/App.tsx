@@ -3,7 +3,6 @@ import Logo from './components/Logo';
 import Sidebar from './components/Sidebar';
 import NewsColumn from './components/NewsColumn';
 import Footer from './components/Footer';
-import NewsModal from './components/NewsModal';
 import TopBar from '../components/TopBar';
 import { PremiumModal } from './components/PremiumModal';
 import { useAuth } from './contexts/AuthContext';
@@ -15,7 +14,7 @@ const API_BASE_URL = 'https://daka-news-backend.onrender.com/api';
 const App: React.FC = () => {
   const { isPremium } = useAuth();
   const [allColumns, setAllColumns] = useState<NewsColumnType[]>([]);
-  const [selectedNewsItem, setSelectedNewsItem] = useState<NewsItem | null>(null);
+  const [focusedNewsId, setFocusedNewsId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentCountry, setCurrentCountry] = useState('Israel');
@@ -221,19 +220,18 @@ const App: React.FC = () => {
         ) : (
           <div className="flex h-full w-full overflow-hidden">
             {filteredColumns.map((column) => (
-              <NewsColumn key={column.id} column={column} onItemClick={setSelectedNewsItem} />
+              <NewsColumn 
+                key={column.id} 
+                column={column} 
+                onItemClick={(item) => setFocusedNewsId(prev => prev === item.id ? null : item.id)}
+                focusedNewsId={focusedNewsId}
+              />
             ))}
           </div>
         )}
       </main>
 
       <Footer searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-      {selectedNewsItem && (
-        <NewsModal 
-          item={selectedNewsItem} 
-          onClose={() => setSelectedNewsItem(null)} 
-        />
-      )}
       <PremiumModal 
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}

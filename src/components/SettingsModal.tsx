@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { COLORS } from '../constants';
+import LegalModal from './LegalModal';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -6,6 +8,9 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+  const [showCGU, setShowCGU] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
   if (!isOpen) return null;
 
   return (
@@ -36,6 +41,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* Menu des liens */}
           <div className="space-y-2">
             <button
+              onClick={() => setShowCGU(true)}
               className="w-full text-left px-4 py-3 rounded-lg hover:bg-white/5 transition-colors"
               style={{ color: COLORS.white }}
             >
@@ -48,6 +54,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </button>
 
             <button
+              onClick={() => setShowPrivacy(true)}
               className="w-full text-left px-4 py-3 rounded-lg hover:bg-white/5 transition-colors"
               style={{ color: COLORS.white }}
             >
@@ -59,8 +66,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </div>
             </button>
 
-            <button
-              className="w-full text-left px-4 py-3 rounded-lg hover:bg-white/5 transition-colors"
+            <a
+              href="mailto:dakanewsapp@gmail.com"
+              className="w-full text-left px-4 py-3 rounded-lg hover:bg-white/5 transition-colors block"
               style={{ color: COLORS.white }}
             >
               <div className="flex items-center gap-3">
@@ -69,10 +77,41 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </svg>
                 <span className="text-sm">Nous contacter</span>
               </div>
-            </button>
+            </a>
           </div>
         </div>
       </div>
+
+      {/* Modaux juridiques */}
+      <LegalModal
+        isOpen={showCGU}
+        onClose={() => setShowCGU(false)}
+        title="Conditions Générales d'Utilisation et de Vente"
+        content={`[Contenu des CGU/CGV à compléter]
+
+Dernière mise à jour : ${new Date().toLocaleDateString('fr-FR')}
+
+Article 1 - Objet
+...
+
+Article 2 - Acceptation des conditions
+...`}
+      />
+
+      <LegalModal
+        isOpen={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+        title="Politique de Confidentialité"
+        content={`[Contenu de la Politique de Confidentialité à compléter]
+
+Dernière mise à jour : ${new Date().toLocaleDateString('fr-FR')}
+
+1. Collecte des données
+...
+
+2. Utilisation des données
+...`}
+      />
     </div>
   );
 }

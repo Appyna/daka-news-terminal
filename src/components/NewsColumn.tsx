@@ -6,9 +6,10 @@ import NewsCard from './NewsCard';
 interface NewsColumnProps {
   column: NewsColumnType;
   onItemClick: (item: NewsItem) => void;
+  focusedNewsId?: string | null;
 }
 
-const NewsColumn: React.FC<NewsColumnProps> = ({ column, onItemClick }) => {
+const NewsColumn: React.FC<NewsColumnProps> = ({ column, onItemClick, focusedNewsId }) => {
   // Skeleton loader si pas d'items
   const isLoading = column.items.length === 0;
 
@@ -38,7 +39,12 @@ const NewsColumn: React.FC<NewsColumnProps> = ({ column, onItemClick }) => {
           </div>
         ) : (
           column.items.map((item) => (
-            <NewsCard key={item.id} item={item} onClick={onItemClick} />
+            <NewsCard 
+              key={item.id} 
+              item={item} 
+              onClick={onItemClick}
+              isFocused={focusedNewsId === item.id}
+            />
           ))
         )}
       </div>

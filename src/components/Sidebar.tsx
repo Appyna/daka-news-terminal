@@ -111,7 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
                           isActive 
                             ? 'bg-yellow-500/15 text-yellow-500 font-semibold border-l-2 border-yellow-500' 
                             : 'hover:bg-white/5 text-white/75 hover:text-white border-l-2 border-transparent'
-                        } ${isLocked ? 'opacity-70' : ''}`}
+                        }`}
                       >
                         <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-yellow-500' : 'bg-white/20'}`} />
                         <span className="flex-1">{source}</span>
@@ -136,7 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
         
         <div className="p-4 border-t border-white/5">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[11px] text-white/40 leading-relaxed">
+            <p className="text-[10.5px] text-white/40 leading-relaxed">
               Actualités traduites par intelligence artificielle. Des erreurs peuvent survenir.
             </p>
             <button
