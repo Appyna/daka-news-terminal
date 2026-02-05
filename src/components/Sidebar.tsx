@@ -110,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
                         className={`w-full text-left px-3 py-2 rounded-md transition-all text-xs flex items-center gap-2 ${
                           isActive 
                             ? 'bg-yellow-500/15 text-yellow-500 font-semibold border-l-2 border-yellow-500' 
-                            : 'hover:bg-white/5 text-white/60 hover:text-white/80 border-l-2 border-transparent'
+                            : 'hover:bg-white/5 text-white/75 hover:text-white border-l-2 border-transparent'
                         } ${isLocked ? 'opacity-70' : ''}`}
                       >
                         <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-yellow-500' : 'bg-white/20'}`} />

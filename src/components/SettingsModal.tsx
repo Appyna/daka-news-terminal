@@ -22,7 +22,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           }}
         />
 
-        <div className="p-8">
+        <div className="p-6">
           {/* Bouton fermer */}
           <button
             onClick={onClose}
@@ -34,7 +34,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </button>
 
           {/* Menu des liens */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <button
               className="w-full text-left px-4 py-3 rounded-lg hover:bg-white/5 transition-colors"
               style={{ color: COLORS.white }}
