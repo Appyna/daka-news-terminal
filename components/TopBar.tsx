@@ -58,8 +58,8 @@ const TopBar: React.FC = () => {
                 <div 
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base shadow-lg"
                   style={{
-                    background: `linear-gradient(135deg, ${COLORS.accentYellow1} 0%, ${COLORS.accentYellow2} 50%, #7C3AED 85%, #6D28D9 100%)`,
-                    boxShadow: '0 4px 15px rgba(245, 197, 24, 0.3), 0 2px 8px rgba(109, 40, 217, 0.2)'
+                    background: `linear-gradient(135deg, ${COLORS.accentYellow1} 0%, ${COLORS.accentYellow2} 35%, #2D2560 70%, ${COLORS.dark3} 100%)`,
+                    boxShadow: '0 4px 15px rgba(245, 197, 24, 0.25), 0 2px 8px rgba(37, 37, 80, 0.3)'
                   }}
                 >
                   {profile.username.charAt(0).toUpperCase()}
