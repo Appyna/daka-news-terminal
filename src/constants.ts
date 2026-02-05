@@ -1,7 +1,7 @@
 export const COLORS = {
   dark1: "#0A0918",
-  dark2: "#12102B",
-  dark3: "#1C1940",
+  dark2: "#1A1838",
+  dark3: "#252550",
   accentYellow1: "#F5C518",
   accentYellow2: "#FFD93D",
   white: "#FFFFFF",
