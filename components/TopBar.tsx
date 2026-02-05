@@ -56,10 +56,11 @@ const TopBar: React.FC = () => {
               {/* Avatar avec badge premium */}
               <div className="relative">
                 <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base shadow-lg"
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-base shadow-lg"
                   style={{
-                    background: `linear-gradient(135deg, ${COLORS.accentYellow1} 0%, ${COLORS.accentYellow2} 35%, #2D2560 70%, ${COLORS.dark3} 100%)`,
-                    boxShadow: '0 4px 15px rgba(245, 197, 24, 0.25), 0 2px 8px rgba(37, 37, 80, 0.3)'
+                    backgroundColor: COLORS.accentYellow1,
+                    color: COLORS.dark2,
+                    boxShadow: '0 4px 15px rgba(245, 197, 24, 0.4)'
                   }}
                 >
                   {profile.username.charAt(0).toUpperCase()}
