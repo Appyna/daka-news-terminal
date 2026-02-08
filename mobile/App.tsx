@@ -148,20 +148,14 @@ function MainApp() {
       />
 
       <View style={styles.main}>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={COLORS.accentYellow1} />
-            <Text style={styles.loadingText}>Chargement...</Text>
-          </View>
-        ) : (
-          <NewsColumn
-            sourceName={currentSource}
-            country={currentCountry}
-            articles={articles}
-            focusedNewsId={focusedNewsId}
-            onItemFocus={setFocusedNewsId}
-          />
-        )}
+        <NewsColumn
+          sourceName={currentSource}
+          country={currentCountry}
+          articles={articles}
+          focusedNewsId={focusedNewsId}
+          onItemFocus={setFocusedNewsId}
+          loading={loading}
+        />
       </View>
 
       <AuthModal

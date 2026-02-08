@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Modal, Pressable, ScrollView, StyleSheet, StatusBar, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import { COLORS, FREE_SOURCES } from '../constants';
 import Svg, { Path } from 'react-native-svg';
 
@@ -91,8 +92,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [visible, slideAnim, overlayOpacity]);
 
   const handleSourcePress = (country: string, source: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const isLocked = !isPremium && !FREE_SOURCES.includes(source);
     if (isLocked) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       onPremiumPress();
     } else {
       onSelectFlux(country, source);

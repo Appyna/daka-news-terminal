@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, Dimensions } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, Dimensions, Animated } from 'react-native';
 import { NewsCard } from './NewsCard';
 import { Article } from '../types';
 import { COLORS } from '../constants';
@@ -10,6 +10,7 @@ interface NewsColumnProps {
   articles: Article[];
   focusedNewsId: string | null;
   onItemFocus: (id: string | null) => void;
+  loading?: boolean;
 }
 
 export const NewsColumn: React.FC<NewsColumnProps> = ({
@@ -18,7 +19,33 @@ export const NewsColumn: React.FC<NewsColumnProps> = ({
   articles,
   focusedNewsId,
   onItemFocus,
+  loading = false,
 }) => {
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Transition fade lors changement de source
+  useEffect(() => {
+    fadeAnim.setValue(0);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 400,
+      useNativeDriver: true,
+    }).start();
+  }, [sourceName]);
+
+  // Skeleton loader
+  const renderSkeleton = () => (
+    <View>
+      {[...Array(5)].map((_, i) => (
+        <View key={i} style={styles.skeletonCard}>
+          <View style={styles.skeletonLine} />
+          <View style={[styles.skeletonLine, { width: '80%', marginTop: 8 }]} />
+          <View style={[styles.skeletonLine, { width: '60%', marginTop: 8 }]} />
+        </View>
+      ))}
+    </View>
+  );
+
   return (
     <View style={styles.column}>
       {/* Header avec nom de la source */}
@@ -28,20 +55,26 @@ export const NewsColumn: React.FC<NewsColumnProps> = ({
         </Text>
       </View>
 
-      {/* Liste des articles en plein écran */}
-      <FlatList
-        data={articles}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <NewsCard
-            article={item}
-            isFocused={focusedNewsId === item.id}
-            onPress={() => onItemFocus(focusedNewsId === item.id ? null : item.id)}
+      {/* Liste avec fade + skeleton */}
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        {loading && articles.length === 0 ? (
+          renderSkeleton()
+        ) : (
+          <FlatList
+            data={articles}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <NewsCard
+                article={item}
+                isFocused={focusedNewsId === item.id}
+                onPress={() => onItemFocus(focusedNewsId === item.id ? null : item.id)}
+              />
+            )}
+            showsVerticalScrollIndicator={false}
+            style={styles.list}
           />
         )}
-        showsVerticalScrollIndicator={false}
-        style={styles.list}
-      />
+      </Animated.View>
     </View>
   );
 };
@@ -66,5 +99,16 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
+  },
+  skeletonCard: {
+    padding: 14,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  skeletonLine: {
+    height: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 4,
+    width: '100%',
   },
 });

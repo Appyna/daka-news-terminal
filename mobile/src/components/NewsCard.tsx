@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, Share, Platform } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Article } from '../types';
 import { COLORS } from '../constants';
 
@@ -19,6 +20,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, isFocused, onPress 
 
   const handleShare = async (e: any) => {
     e?.stopPropagation?.();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       await Share.share({
         message: `DAKA News | ${article.source} · ${article.title}\n\nhttps://daka-news.com`,
@@ -31,9 +33,14 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, isFocused, onPress 
 
   const isRTL = article.country === 'Israel';
 
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onPress();
+  };
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       style={({ pressed }) => [
         styles.card,
         isFocused ? styles.cardFocused : (pressed && styles.cardPressed),
