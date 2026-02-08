@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, FlatList, Linking } from 'react-native';
+import { StyleSheet, View, ScrollView, Linking, ActivityIndicator, Text, PanResponder } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { TopBar } from './src/components/TopBar';
@@ -10,61 +10,101 @@ import { AuthModal } from './src/components/AuthModal';
 import { PremiumModal } from './src/components/PremiumModal';
 import { SettingsModal } from './src/components/SettingsModal';
 import { apiService } from './src/services/apiService';
-import { Article } from './src/types';
+import { Article, Source } from './src/types';
 import { COLORS, FREE_SOURCES } from './src/constants';
+
+interface NewsColumnData {
+  id: string;
+  sourceName: string;
+  country: string;
+  articles: Article[];
+  color: string;
+}
 
 function MainApp() {
   const { user, profile } = useAuth();
-  const [selectedSource, setSelectedSource] = useState<string | null>('Ynet');
+  const [sources, setSources] = useState<Source[]>([]);
+  const [currentCountry, setCurrentCountry] = useState('Israel');
+  const [currentSource, setCurrentSource] = useState('Ynet');
   const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [focusedNewsId, setFocusedNewsId] = useState<string | null>(null);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
   const [authModalVisible, setAuthModalVisible] = useState(false);
   const [premiumModalVisible, setPremiumModalVisible] = useState(false);
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 
   const isPremium = profile?.subscription_tier === 'PREMIUM';
 
+  // Geste swipe pour ouvrir le sidebar
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: (evt, gestureState) => {
+        // Détecter si le geste commence depuis le bord gauche (< 30px)
+        return evt.nativeEvent.pageX < 30;
+      },
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        // Activer si swipe horizontal significatif
+        return Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 30;
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        // Si swipe vers la droite > 80px, ouvrir le sidebar
+        if (gestureState.dx > 80) {
+          setSidebarVisible(true);
+        }
+      },
+    })
+  ).current;
+
+  // Charger les sources
   useEffect(() => {
-    if (selectedSource) {
-      loadArticles(selectedSource);
+    loadSources();
+  }, []);
+
+  // Charger les articles de la source sélectionnée
+  useEffect(() => {
+    if (currentSource) {
+      loadArticles(currentSource);
+      const interval = setInterval(() => loadArticles(currentSource), 3 * 60 * 1000);
+      return () => clearInterval(interval);
     }
-  }, [selectedSource]);
+  }, [currentSource]);
+
+  const loadSources = async () => {
+    try {
+      const data = await apiService.getSources();
+      setSources(data);
+    } catch (error) {
+      console.error('Error loading sources:', error);
+    }
+  };
 
   const loadArticles = async (sourceName: string) => {
     setLoading(true);
     try {
       const data = await apiService.getFeeds(sourceName);
-      setArticles(data);
+      const sorted = data.sort((a, b) => 
+        new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime()
+      );
+      setArticles(sorted);
     } catch (error) {
-      console.error('Error loading articles:', error);
+      console.error(`Error loading ${sourceName}:`, error);
+      setArticles([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSourceSelect = (sourceName: string) => {
+  const handleSelectFlux = (country: string, sourceName: string) => {
     const isFree = FREE_SOURCES.includes(sourceName);
     if (!isFree && !isPremium) {
       setPremiumModalVisible(true);
+      setSidebarVisible(false);
     } else {
-      setSelectedSource(sourceName);
+      setCurrentCountry(country);
+      setCurrentSource(sourceName);
       setFocusedNewsId(null);
-    }
-  };
-
-  const handlePurchase = async () => {
-    if (!user) {
-      setPremiumModalVisible(false);
-      setAuthModalVisible(true);
-      return;
-    }
-
-    try {
-      const { url } = await apiService.createStripeCheckoutSession(user.id);
-      Linking.openURL(url);
-    } catch (error) {
-      console.error('Error creating checkout:', error);
+      setSidebarVisible(false);
     }
   };
 
@@ -80,30 +120,48 @@ function MainApp() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} {...panResponder.panHandlers}>
       <StatusBar style="light" />
       
       <TopBar
         onAuthPress={() => setAuthModalVisible(true)}
         onPremiumPress={() => setPremiumModalVisible(true)}
         onManageSubscription={handleManageSubscription}
+        onMenuPress={() => setSidebarVisible(true)}
+      />
+
+      <Sidebar
+        visible={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+        currentCountry={currentCountry}
+        currentSource={currentSource}
+        onSelectFlux={handleSelectFlux}
+        isPremium={isPremium}
+        onSettingsPress={() => {
+          setSidebarVisible(false);
+          setSettingsModalVisible(true);
+        }}
+        onPremiumPress={() => {
+          setSidebarVisible(false);
+          setPremiumModalVisible(true);
+        }}
       />
 
       <View style={styles.main}>
-        <Sidebar
-          selectedSource={selectedSource}
-          onSourceSelect={handleSourceSelect}
-          onSettingsPress={() => setSettingsModalVisible(true)}
-          onPremiumPress={() => setPremiumModalVisible(true)}
-        />
-
-        <NewsColumn
-          sourceName={selectedSource || ''}
-          articles={articles}
-          loading={loading}
-          focusedNewsId={focusedNewsId}
-          onItemPress={(item) => setFocusedNewsId(prev => prev === item.id ? null : item.id)}
-        />
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.accentYellow1} />
+            <Text style={styles.loadingText}>Chargement...</Text>
+          </View>
+        ) : (
+          <NewsColumn
+            sourceName={currentSource}
+            country={currentCountry}
+            articles={articles}
+            focusedNewsId={focusedNewsId}
+            onItemFocus={setFocusedNewsId}
+          />
+        )}
       </View>
 
       <AuthModal
@@ -114,7 +172,6 @@ function MainApp() {
       <PremiumModal
         visible={premiumModalVisible}
         onClose={() => setPremiumModalVisible(false)}
-        onPurchase={handlePurchase}
       />
 
       <SettingsModal
@@ -142,6 +199,16 @@ const styles = StyleSheet.create({
   },
   main: {
     flex: 1,
-    flexDirection: 'row',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    color: COLORS.accentYellow1,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

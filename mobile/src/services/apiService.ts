@@ -5,19 +5,31 @@ export const apiService = {
   async getFeeds(sourceName: string): Promise<Article[]> {
     const response = await fetch(`${API_BASE_URL}/feeds/${sourceName}`);
     if (!response.ok) throw new Error('Failed to fetch feeds');
-    return response.json();
+    const data = await response.json();
+    return data.success ? data.articles : [];
   },
 
   async getFeedsByCategory(category: string): Promise<Article[]> {
     const response = await fetch(`${API_BASE_URL}/feeds/category/${category}`);
     if (!response.ok) throw new Error('Failed to fetch feeds by category');
-    return response.json();
+    const data = await response.json();
+    return data.success ? data.articles : [];
   },
 
   async getSources(): Promise<Source[]> {
     const response = await fetch(`${API_BASE_URL}/sources`);
     if (!response.ok) throw new Error('Failed to fetch sources');
-    return response.json();
+    const data = await response.json();
+    
+    // L'API renvoie { success: true, sources: { Israel: [...], France: [...], ... } }
+    // On doit flatten en un tableau de sources
+    if (!data.success || !data.sources) return [];
+    
+    const allSources: Source[] = [];
+    for (const [country, sources] of Object.entries(data.sources) as [string, any[]][]) {
+      allSources.push(...sources);
+    }
+    return allSources;
   },
 
   async createStripeCheckoutSession(userId: string) {

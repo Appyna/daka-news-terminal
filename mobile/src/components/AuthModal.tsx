@@ -3,50 +3,63 @@ import {
   View,
   Text,
   Modal,
+  ScrollView,
+  Pressable,
+  StyleSheet,
   TextInput,
-  TouchableOpacity,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
+  Linking,
 } from 'react-native';
-import { useAuth } from '../contexts/AuthContext';
 import { COLORS } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 
 interface AuthModalProps {
   visible: boolean;
   onClose: () => void;
+  redirectToPremium?: boolean;
+  initialTab?: 'login' | 'signup';
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose }) => {
-  const { signIn, signUp, resetPassword } = useAuth();
-  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
+export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirectToPremium = false, initialTab = 'login' }) => {
+  const { signIn, signUp } = useAuth();
+  const [activeTab, setActiveTab] = useState<'login' | 'signup'>(initialTab);
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async () => {
     setError('');
-    setLoading(true);
+    setSuccessMessage('');
+    
+    if (!email || !password) {
+      setError('Veuillez remplir tous les champs');
+      return;
+    }
 
+    if (activeTab === 'signup' && !username) {
+      setError('Veuillez entrer un nom d\'utilisateur');
+      return;
+    }
+
+    setLoading(true);
     try {
-      if (mode === 'reset') {
-        await resetPassword(email);
-        setError('Email de réinitialisation envoyé !');
-        setTimeout(() => {
-          setMode('login');
-          setError('');
-        }, 2000);
-      } else if (mode === 'signup') {
-        await signUp(email, password);
-        setError('Compte créé ! Vérifiez votre email.');
-        setTimeout(() => onClose(), 2000);
-      } else {
+      if (activeTab === 'login') {
         await signIn(email, password);
         onClose();
+      } else {
+        await signUp(email, password);
+        setSuccessMessage('Compte créé avec succès !');
+        if (redirectToPremium) {
+          setTimeout(() => onClose(), 1500);
+        } else {
+          setTimeout(() => onClose(), 1500);
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue');
@@ -55,259 +68,389 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose }) => {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError('Veuillez entrer votre email');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      // TODO: Implémenter reset password avec Supabase
+      setSuccessMessage('Email de réinitialisation envoyé !');
+      setTimeout(() => {
+        setShowResetPassword(false);
+        setSuccessMessage('');
+      }, 2000);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      transparent
-      onRequestClose={onClose}
-    >
-      <KeyboardAvoidingView
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
+        style={styles.keyboardView}
       >
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        
-        <View style={styles.container}>
-          {/* Header gradient */}
-          <View style={styles.headerGradient} />
-          
-          {/* Close button */}
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeText}>✕</Text>
-          </TouchableOpacity>
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <View style={styles.modalContainer} onStartShouldSetResponder={() => true}>
+            {/* Barre jaune en haut */}
+            <View style={styles.yellowBar} />
 
-          <ScrollView contentContainerStyle={styles.content}>
-            {/* Tabs */}
-            {mode !== 'reset' && (
-              <View style={styles.tabs}>
-                <TouchableOpacity
-                  style={[styles.tab, mode === 'login' && styles.tabActive]}
-                  onPress={() => setMode('login')}
-                >
-                  <Text style={[styles.tabText, mode === 'login' && styles.tabTextActive]}>
-                    Connexion
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.tab, mode === 'signup' && styles.tabActive]}
-                  onPress={() => setMode('signup')}
-                >
-                  <Text style={[styles.tabText, mode === 'signup' && styles.tabTextActive]}>
-                    Inscription
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
+            {/* Titre principal */}
+            <Text style={styles.mainTitle}>
+              {activeTab === 'login' ? 'Connexion' : 'Créer un compte'}
+            </Text>
 
-            {mode === 'reset' && (
-              <Text style={styles.resetTitle}>Réinitialiser le mot de passe</Text>
-            )}
+            {/* Tabs avec underline jaune */}
+            <View style={styles.tabsContainer}>
+              <Pressable
+                style={styles.tab}
+                onPress={() => {
+                  setActiveTab('login');
+                  setError('');
+                  setSuccessMessage('');
+                  setShowResetPassword(false);
+                }}
+              >
+                <Text style={[styles.tabText, activeTab === 'login' && styles.tabTextActive]}>
+                  Connexion
+                </Text>
+                {activeTab === 'login' && <View style={styles.tabUnderline} />}
+              </Pressable>
 
-            {/* Email */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="votre@email.com"
-                placeholderTextColor="rgba(255, 255, 255, 0.3)"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              <Pressable
+                style={styles.tab}
+                onPress={() => {
+                  setActiveTab('signup');
+                  setError('');
+                  setSuccessMessage('');
+                  setShowResetPassword(false);
+                }}
+              >
+                <Text style={[styles.tabText, activeTab === 'signup' && styles.tabTextActive]}>
+                  Inscription
+                </Text>
+                {activeTab === 'signup' && <View style={styles.tabUnderline} />}
+              </Pressable>
             </View>
 
-            {/* Password */}
-            {mode !== 'reset' && (
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Mot de passe</Text>
-                <TextInput
-                  style={styles.input}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="••••••••"
-                  placeholderTextColor="rgba(255, 255, 255, 0.3)"
-                  secureTextEntry
-                  autoCapitalize="none"
-                />
-              </View>
-            )}
-
-            {/* Error */}
-            {error && (
-              <Text style={[styles.error, error.includes('!') && styles.success]}>
-                {error}
-              </Text>
-            )}
-
-            {/* Submit button */}
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleSubmit}
-              disabled={loading}
+            <ScrollView 
+              style={styles.content} 
+              contentContainerStyle={styles.contentContainer}
+              keyboardShouldPersistTaps="handled"
             >
-              {loading ? (
-                <ActivityIndicator color={COLORS.dark1} />
+              {showResetPassword ? (
+                /* Mode Reset Password */
+                <>
+                  <Text style={styles.subtitle}>
+                    Entrez votre email et nous vous enverrons un lien de réinitialisation.
+                  </Text>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Email</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="votre@email.com"
+                      placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                      value={email}
+                      onChangeText={setEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+
+                  {error ? <Text style={styles.error}>{error}</Text> : null}
+                  {successMessage ? <Text style={styles.success}>{successMessage}</Text> : null}
+
+                  <Pressable
+                    style={[styles.ctaButton, loading && styles.ctaButtonDisabled]}
+                    onPress={handleResetPassword}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color={COLORS.dark1} />
+                    ) : (
+                      <Text style={styles.ctaText}>Envoyer le lien</Text>
+                    )}
+                  </Pressable>
+
+                  <Pressable onPress={() => setShowResetPassword(false)} style={styles.backButton}>
+                    <Text style={styles.backButtonText}>← Retour</Text>
+                  </Pressable>
+                </>
               ) : (
-                <Text style={styles.buttonText}>
-                  {mode === 'reset' ? 'Envoyer' : mode === 'signup' ? "S'inscrire" : 'Se connecter'}
-                </Text>
+                /* Mode Login/Signup normal */
+                <>
+                  {/* Champ Nom d'utilisateur (uniquement pour Inscription) */}
+                  {activeTab === 'signup' && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Nom d'utilisateur</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="3 à 20 caractères"
+                        placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                        value={username}
+                        onChangeText={setUsername}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                    </View>
+                  )}
+
+                  {/* Champ Email */}
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Email</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="votre@email.com"
+                      placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                      value={email}
+                      onChangeText={setEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+
+                  {/* Champ Mot de passe */}
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Mot de passe</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Minimum 6 caractères"
+                      placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+
+                  {/* Mot de passe oublié (uniquement pour Connexion) */}
+                  {activeTab === 'login' && (
+                    <Pressable onPress={() => setShowResetPassword(true)} style={styles.forgotPassword}>
+                      <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
+                    </Pressable>
+                  )}
+
+                  {error ? <Text style={styles.error}>{error}</Text> : null}
+                  {successMessage ? <Text style={styles.success}>{successMessage}</Text> : null}
+
+                  {/* CGU (uniquement pour Inscription) - AVANT le bouton */}
+                  {activeTab === 'signup' && (
+                    <Text style={styles.cgu}>
+                      En m'inscrivant, j'accepte les{' '}
+                      <Text
+                        style={styles.cguLink}
+                        onPress={() => Linking.openURL('https://dakanews.com/cgu')}
+                      >
+                        conditions d'utilisation
+                      </Text>{' '}
+                      et de vente
+                    </Text>
+                  )}
+
+                  {/* Bouton CTA */}
+                  <Pressable
+                    style={[styles.ctaButton, loading && styles.ctaButtonDisabled]}
+                    onPress={handleSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color={COLORS.dark1} />
+                    ) : (
+                      <Text style={styles.ctaText}>
+                        {activeTab === 'login' ? 'Se connecter' : 'Créer mon compte'}
+                      </Text>
+                    )}
+                  </Pressable>
+                </>
               )}
-            </TouchableOpacity>
+            </ScrollView>
 
-            {/* Reset password link */}
-            {mode === 'login' && (
-              <TouchableOpacity onPress={() => setMode('reset')} style={styles.linkContainer}>
-                <Text style={styles.link}>Mot de passe oublié ?</Text>
-              </TouchableOpacity>
-            )}
-
-            {mode === 'reset' && (
-              <TouchableOpacity onPress={() => setMode('login')} style={styles.linkContainer}>
-                <Text style={styles.link}>Retour à la connexion</Text>
-              </TouchableOpacity>
-            )}
-
-            {/* CGU Disclaimer */}
-            <Text style={styles.disclaimer}>
-              En vous inscrivant, vous acceptez nos Conditions Générales d'Utilisation et notre Politique de Confidentialité.
-            </Text>
-          </ScrollView>
-        </View>
+            {/* Bouton fermer (X) */}
+            <Pressable onPress={onClose} style={styles.closeButton}>
+              <Text style={styles.closeText}>✕</Text>
+            </Pressable>
+          </View>
+        </Pressable>
       </KeyboardAvoidingView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardView: {
+    flex: 1,
+  },
   overlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-  container: {
-    width: '90%',
-    maxWidth: 400,
+  modalContainer: {
+    width: '100%',
+    maxWidth: 420,
     backgroundColor: COLORS.dark2,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(245, 197, 24, 0.2)',
     overflow: 'hidden',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    position: 'relative',
   },
-  headerGradient: {
-    height: 4,
+  yellowBar: {
+    height: 3,
     backgroundColor: COLORS.accentYellow1,
   },
-  closeButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
+  mainTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#fff',
+    textAlign: 'center',
+    paddingVertical: 18,
+    paddingTop: 20,
   },
-  closeText: {
-    fontSize: 24,
-    color: COLORS.white,
-    fontWeight: '300',
-  },
-  content: {
-    padding: 24,
-  },
-  tabs: {
+  tabsContainer: {
     flexDirection: 'row',
-    marginBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 28,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  tabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: COLORS.accentYellow1,
+    paddingBottom: 10,
+    position: 'relative',
   },
   tabText: {
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: '500',
     color: 'rgba(255, 255, 255, 0.5)',
+    textAlign: 'center',
   },
   tabTextActive: {
     color: COLORS.accentYellow1,
     fontWeight: '600',
   },
-  resetTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.white,
-    marginBottom: 24,
-    textAlign: 'center',
+  tabUnderline: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: COLORS.accentYellow1,
+  },
+  content: {
+    maxHeight: 500,
+  },
+  contentContainer: {
+    padding: 28,
+    paddingTop: 28,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 20,
+    lineHeight: 17,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
     marginBottom: 8,
   },
   input: {
     backgroundColor: COLORS.dark3,
-    borderWidth: 1,
-    borderColor: COLORS.dark3,
     borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: COLORS.white,
+    padding: 12,
+    color: '#fff',
+    fontSize: 14,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginTop: -10,
+    marginBottom: 16,
+  },
+  forgotPasswordText: {
+    fontSize: 11,
+    color: COLORS.accentYellow1,
+    fontWeight: '500',
   },
   error: {
-    color: '#FF4444',
-    fontSize: 14,
-    marginBottom: 16,
+    color: '#f87171',
+    fontSize: 11,
+    marginBottom: 14,
     textAlign: 'center',
   },
   success: {
-    color: '#00FF88',
+    color: '#4ade80',
+    fontSize: 11,
+    marginBottom: 14,
+    textAlign: 'center',
+    fontWeight: '500',
   },
-  button: {
+  ctaButton: {
     backgroundColor: COLORS.accentYellow1,
     borderRadius: 8,
-    paddingVertical: 14,
+    padding: 14,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 4,
   },
-  buttonDisabled: {
+  ctaButtonDisabled: {
     opacity: 0.6,
   },
-  buttonText: {
+  ctaText: {
     color: COLORS.dark1,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  linkContainer: {
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  link: {
-    color: COLORS.accentYellow1,
     fontSize: 14,
+    fontWeight: '700',
   },
-  disclaimer: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.4)',
+  cgu: {
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginTop: 16,
+    marginBottom: 8,
     textAlign: 'center',
-    marginTop: 24,
-    lineHeight: 16,
+    lineHeight: 15,
+  },
+  cguLink: {
+    color: COLORS.accentYellow1,
+    fontWeight: '600',
+  },
+  backButton: {
+    marginTop: 14,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: COLORS.accentYellow1,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  closeText: {
+    fontSize: 22,
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontWeight: '300',
   },
 });

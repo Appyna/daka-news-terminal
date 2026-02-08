@@ -1,78 +1,70 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Dimensions } from 'react-native';
 import { NewsCard } from './NewsCard';
 import { Article } from '../types';
 import { COLORS } from '../constants';
 
 interface NewsColumnProps {
   sourceName: string;
+  country: string;
   articles: Article[];
-  loading: boolean;
   focusedNewsId: string | null;
-  onItemPress: (item: Article) => void;
+  onItemFocus: (id: string | null) => void;
 }
 
 export const NewsColumn: React.FC<NewsColumnProps> = ({
   sourceName,
+  country,
   articles,
-  loading,
   focusedNewsId,
-  onItemPress,
+  onItemFocus,
 }) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.column}>
+      {/* Header avec nom de la source */}
       <View style={styles.header}>
-        <Text style={styles.title}>{sourceName}</Text>
+        <Text style={styles.headerText}>
+          {country?.toUpperCase() || ''} - {sourceName || ''}
+        </Text>
       </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator color={COLORS.accentYellow1} />
-        </View>
-      ) : (
-        <FlatList
-          data={articles}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <NewsCard
-              item={item}
-              isFocused={focusedNewsId === item.id}
-              onPress={() => onItemPress(item)}
-            />
-          )}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+      {/* Liste des articles en plein écran */}
+      <FlatList
+        data={articles}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <NewsCard
+            article={item}
+            isFocused={focusedNewsId === item.id}
+            onPress={() => onItemFocus(focusedNewsId === item.id ? null : item.id)}
+          />
+        )}
+        showsVerticalScrollIndicator={false}
+        style={styles.list}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  column: {
     flex: 1,
-    minWidth: 320,
-    backgroundColor: COLORS.dark1,
+    width: '100%',
   },
   header: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
   },
-  title: {
-    fontSize: 14,
-    fontWeight: 'bold',
+  headerText: {
     color: COLORS.accentYellow1,
+    fontSize: 14,
+    fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
-  loadingContainer: {
+  list: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  listContent: {
-    paddingBottom: 20,
   },
 });

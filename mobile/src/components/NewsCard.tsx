@@ -4,178 +4,168 @@ import { Article } from '../types';
 import { COLORS } from '../constants';
 
 interface NewsCardProps {
-  item: Article;
+  article: Article;
   isFocused: boolean;
   onPress: () => void;
 }
 
-export const NewsCard: React.FC<NewsCardProps> = ({ item, isFocused, onPress }) => {
+export const NewsCard: React.FC<NewsCardProps> = ({ article, isFocused, onPress }) => {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
   };
 
-  const handleShare = async () => {
+  const handleShare = async (e: any) => {
+    e?.stopPropagation?.();
     try {
       await Share.share({
-        message: `${item.title}\n\n${item.link}`,
-        url: Platform.OS === 'ios' ? item.link : undefined,
+        message: `DAKA News | ${article.source} · ${article.title}\n\nhttps://daka-news.com`,
+        // Note: L'image sera ajoutée dans le build production (pas disponible dans Expo Go)
       });
     } catch (error) {
       console.error('Error sharing:', error);
     }
   };
 
-  const isRTL = item.country === 'Israel';
+  const isRTL = article.country === 'Israel';
 
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
-        isFocused && styles.cardFocused,
-        pressed && !isFocused && styles.cardPressed,
+        isFocused ? styles.cardFocused : (pressed && styles.cardPressed),
       ]}
     >
-      <View style={isFocused ? styles.contentFocused : styles.content}>
-        {/* Header: Heure + Source + Share button */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.time}>{formatTime(item.pub_date)}</Text>
-            <View style={styles.sourceBadge}>
-              <Text style={styles.sourceText}>{item.source}</Text>
-            </View>
-          </View>
-          
+      {/* Header: time + source + share button */}
+      <View style={[styles.header, isFocused && styles.headerFocused]}>
+        <Text style={styles.time}>{formatTime(article.pub_date)}</Text>
+        
+        <View style={styles.headerRight}>
           {isFocused && (
             <Pressable onPress={handleShare} style={styles.shareButton}>
               <Text style={styles.shareIcon}>↗</Text>
               <Text style={styles.shareText}>Partager</Text>
             </Pressable>
           )}
+          <Text style={styles.sourceBadge}>{article.source}</Text>
         </View>
-
-        {/* Titre */}
-        <Text 
-          style={[styles.title, isFocused && styles.titleFocused]}
-          numberOfLines={isFocused ? undefined : 3}
-        >
-          {item.title}
-        </Text>
-
-        {/* Texte source (si focusé et pas France) */}
-        {isFocused && item.translation && item.country !== 'France' && (
-          <View style={styles.sourceSection}>
-            <Text style={styles.sourceLabel}>TEXTE SOURCE</Text>
-            <Text 
-              style={[
-                styles.sourceContent,
-                isRTL && styles.sourceContentRTL
-              ]}
-            >
-              {item.translation}
-            </Text>
-          </View>
-        )}
       </View>
+
+      {/* Titre */}
+      <Text
+        style={[styles.title, isFocused && styles.titleFocused]}
+        numberOfLines={isFocused ? undefined : 3}
+      >
+        {article.title}
+      </Text>
+
+      {/* Texte source (si focusé et pas France) */}
+      {isFocused && article.title_original && article.country !== 'France' && (
+        <View style={styles.sourceSection}>
+          <Text style={styles.sourceLabel}>TEXTE SOURCE</Text>
+          <Text
+            style={[
+              styles.sourceContent,
+              isRTL && styles.sourceContentRTL,
+            ]}
+          >
+            {article.title_original}
+          </Text>
+        </View>
+      )}
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'transparent',
-    marginBottom: 1,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 14, // p-3.5 = 14px
   },
   cardPressed: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   cardFocused: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    paddingHorizontal: 14,
+    paddingVertical: 24, // py-6 = 24px
     shadowColor: COLORS.accentYellow1,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 0.4,
     elevation: 1,
   },
-  content: {
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-  },
-  contentFocused: {
-    paddingHorizontal: 14,
-    paddingVertical: 24,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'flex-start',
+    marginBottom: 8, // mb-2 = 8px
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  headerFocused: {
+    marginBottom: 16, // mb-4 = 16px
   },
   time: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.5)',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    marginRight: 8,
+    color: 'rgba(255, 255, 255, 0.4)',
   },
-  sourceBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  sourceText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: COLORS.white,
-    textTransform: 'uppercase',
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   shareButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    gap: 6,
+    paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
-    borderWidth: 1,
-    borderColor: COLORS.accentYellow1,
+    backgroundColor: 'transparent',
+    marginTop: -6,
   },
   shareIcon: {
-    fontSize: 14,
-    color: COLORS.accentYellow1,
-    marginRight: 4,
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   shareText: {
     fontSize: 12,
-    color: COLORS.accentYellow1,
-    fontWeight: '600',
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  sourceBadge: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.3)',
+    textTransform: 'uppercase',
+    letterSpacing: -0.5,
   },
   title: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 14, // text-sm
+    fontWeight: '700',
     color: COLORS.white,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   titleFocused: {
     color: COLORS.accentYellow1,
-    marginBottom: 16,
+    marginBottom: 16, // mb-4
   },
   sourceSection: {
-    marginTop: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
+    marginTop: 20, // mt-5
+    paddingTop: 16, // pt-4
+    borderTopWidth: 0.5,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
   sourceLabel: {
     fontSize: 9,
-    color: 'rgba(255, 255, 255, 0.25)',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 8,
+    color: 'rgba(255, 255, 255, 0.25)',
+    marginBottom: 6,
   },
   sourceContent: {
     fontSize: 12,

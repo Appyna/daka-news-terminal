@@ -90,10 +90,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                 <Text style={styles.itemText}>Contactez-nous</Text>
                 <Text style={styles.arrow}>›</Text>
               </TouchableOpacity>
-
-              <Text style={styles.footer}>
-                dakanewsapp@gmail.com
-              </Text>
             </ScrollView>
           </View>
         </View>
