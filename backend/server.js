@@ -3,12 +3,19 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 import { JSDOM } from 'jsdom';
 import { scrapeStreetInsider } from './streetinsiderScraper.js';
+import { createClient } from '@supabase/supabase-js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+
+// Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL || 'https://wzqhrothppyktowwllkr.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+);
 
 // Cache par channel pour éviter trop d'appels RSSHub
 const channelCache = new Map();
@@ -146,6 +153,44 @@ app.get('/api/scraper/streetinsider', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ [StreetInsider] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// 🔔 NOTIFICATIONS - Save push token
+app.post('/api/notifications/save-token', async (req, res) => {
+  try {
+    const { deviceId, pushToken, userId } = req.body;
+
+    if (!deviceId || !pushToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'deviceId et pushToken requis'
+      });
+    }
+
+    const { error } = await supabase
+      .from('user_push_tokens')
+      .upsert({
+        device_id: deviceId,
+        push_token: pushToken,
+        user_id: userId || null,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'device_id'
+      });
+
+    if (error) throw error;
+
+    res.json({
+      success: true,
+      message: 'Push token enregistré'
+    });
+  } catch (error) {
+    console.error('❌ Erreur save token:', error);
     res.status(500).json({
       success: false,
       error: error.message
