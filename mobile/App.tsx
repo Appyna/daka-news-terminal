@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, ScrollView, Linking, ActivityIndicator, Text, PanResponder } from 'react-native';
+import { StyleSheet, View, ScrollView, Linking, ActivityIndicator, Text, PanResponder, Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { TopBar } from './src/components/TopBar';
@@ -12,6 +12,8 @@ import { SettingsModal } from './src/components/SettingsModal';
 import { apiService } from './src/services/apiService';
 import { Article, Source } from './src/types';
 import { COLORS, FREE_SOURCES } from './src/constants';
+import { registerForPushNotifications, addNotificationReceivedListener, addNotificationResponseReceivedListener } from './src/services/notificationService';
+import Constants from 'expo-constants';
 
 interface NewsColumnData {
   id: string;
@@ -35,6 +37,48 @@ function MainApp() {
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 
   const isPremium = profile?.subscription_tier === 'PREMIUM';
+
+  // 🔔 Enregistrer les notifications au démarrage
+  useEffect(() => {
+    registerForPushNotifications().then(async token => {
+      if (token) {
+        const deviceId = Constants.installationId || Constants.sessionId || 'unknown-device';
+        console.log('📱 Push token obtenu:', token);
+        console.log('📱 Device ID:', deviceId);
+        try {
+          await apiService.savePushToken(deviceId, token, user?.id);
+          console.log('✅ Token sauvegardé dans le backend (user:', user ? 'connecté' : 'anonyme', ')');
+        } catch (error) {
+          console.error('❌ Erreur save token:', error);
+        }
+      }
+    });
+
+    // Écouter les notifications reçues quand l'app est ouverte
+    const receivedListener = addNotificationReceivedListener(notification => {
+      console.log('🔔 Notification reçue:', notification);
+      Alert.alert(
+        notification.request.content.title || 'Nouvelle notification',
+        notification.request.content.body || '',
+        [{ text: 'OK' }]
+      );
+    });
+
+    // Écouter les notifications cliquées (app fermée/background)
+    const responseListener = addNotificationResponseReceivedListener(response => {
+      console.log('👆 Notification cliquée:', response);
+      // TODO: Naviguer vers l'article si l'ID est dans les données
+      const articleId = response.notification.request.content.data?.articleId;
+      if (articleId) {
+        setFocusedNewsId(articleId as string);
+      }
+    });
+
+    return () => {
+      receivedListener.remove();
+      responseListener.remove();
+    };
+  }, [user]);
 
   // Geste swipe pour ouvrir le sidebar
   const panResponder = useRef(

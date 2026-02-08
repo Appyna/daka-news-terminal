@@ -51,4 +51,13 @@ export const apiService = {
     if (!response.ok) throw new Error('Failed to create portal session');
     return response.json();
   },
+
+  async savePushToken(deviceId: string, pushToken: string, userId?: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/notifications/save-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceId, pushToken, userId }),
+    });
+    if (!response.ok) throw new Error('Failed to save push token');
+  },
 };
