@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }
         ]}
       >
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} activeOpacity={1} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <Animated.View
           style={[
             styles.sidebar,
@@ -179,11 +179,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <View style={styles.footer}>
             <Text style={styles.aiDisclaimerText}>
-              Actualités traduites par IA.{'\n'}
-              Erreurs possibles.
+              Actualités traduites par intelligence artificielle. Des erreurs peuvent survenir.
             </Text>
             <Pressable onPress={onSettingsPress} style={styles.settingsIcon} hitSlop={8}>
-              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2}>
+              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2}>
                 <Path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
                 <Path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
               </Svg>
@@ -205,9 +204,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     top: 0,
-    width: 280,
+    width: 300,
     height: '100%',
-    backgroundColor: '#252550', // Fond bleu DAKA riche (dark3)
+    backgroundColor: '#1A1838', // COLORS.dark2 (spec exacte)
     borderTopRightRadius: 12,
     borderBottomRightRadius: 12,
     shadowColor: '#000',
@@ -279,13 +278,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   sourceRowActive: {
-    backgroundColor: 'rgba(61, 47, 32, 0.8)',
+    backgroundColor: 'rgba(245, 197, 24, 0.08)',
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.accentYellow1,
+    shadowColor: COLORS.accentYellow1,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   sourceText: {
     flex: 1,
     fontSize: 13,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.95)',
+    color: 'rgba(255, 255, 255, 0.75)',
   },
   sourceTextActive: {
     color: COLORS.accentYellow1,

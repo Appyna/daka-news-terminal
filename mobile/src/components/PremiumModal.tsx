@@ -172,7 +172,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
 
 const Feature = ({ text }: { text: string }) => (
   <View style={styles.featureItem}>
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" style={styles.featureIcon}>
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
       <Path
         d="M20 6L9 17l-5-5"
         stroke={COLORS.accentYellow1}
