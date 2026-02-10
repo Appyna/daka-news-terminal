@@ -49,7 +49,7 @@ export async function getArticlesBySource(sourceName: string): Promise<Article[]
 }
 
 /**
- * Récupérer tous les articles par catégorie
+ * Récupérer tous les articles par catégorie (avec le nom de la source)
  */
 export async function getArticlesByCategory(category: string): Promise<Article[]> {
   const { data: sources } = await supabase
@@ -64,9 +64,10 @@ export async function getArticlesByCategory(category: string): Promise<Article[]
 
   const sourceIds = sources.map(s => s.id);
 
+  // ✅ JOIN avec sources pour ajouter le nom de la source
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select('*, sources(name)')
     .in('source_id', sourceIds)
     .gte('pub_date', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
     .order('pub_date', { ascending: false });
@@ -76,7 +77,11 @@ export async function getArticlesByCategory(category: string): Promise<Article[]
     return [];
   }
 
-  return data || [];
+  // Flatten le résultat pour ajouter source.name comme 'source'
+  return (data || []).map((article: any) => ({
+    ...article,
+    source: article.sources?.name || 'Unknown'
+  }));
 }
 
 /**
