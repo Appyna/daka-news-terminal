@@ -1,11 +1,39 @@
 // Ajout pour /api/news avec cache 3min
 import { getArticlesByCategory } from './services/database';
-
 // Cache global pour les news (24h)
 let newsCache: any[] | null = null;
 let newsCacheTimestamp = 0;
 const NEWS_CACHE_DURATION = 3 * 60 * 1000; // 3 minutes
+import express, { Application, Request, Response } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import dotenv from 'dotenv';
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
+// Config
+import { initSentry } from './config/sentry';
+
+// Routes
+import feedsRouter from './routes/feeds';
+import sourcesRouter from './routes/sources';
+import adminRouter from './routes/admin';
+import stripeRouter from './routes/stripe';
+import webhooksRouter from './routes/webhooks';
+import appleWebhooksRouter from './routes/apple-webhooks';
+import googleWebhooksRouter from './routes/google-webhooks';
+import notificationsRouter from './routes/notifications';
+
+// CRON
+
+// ...initialisation de dotenv, Sentry, etc...
+
+const app = express();
+
+// ...middlewares, routes, etc...
+
+// Endpoint /api/news avec cache 3min (doit être après la création de app)
 app.get('/api/news', async (req: Request, res: Response) => {
   const now = Date.now();
   if (newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION) {
@@ -36,28 +64,6 @@ app.get('/api/news', async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import compression from 'compression';
-import dotenv from 'dotenv';
-import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
-
-// Config
-import { initSentry } from './config/sentry';
-
-// Routes
-import feedsRouter from './routes/feeds';
-import sourcesRouter from './routes/sources';
-import adminRouter from './routes/admin';
-import stripeRouter from './routes/stripe';
-import webhooksRouter from './routes/webhooks';
-import appleWebhooksRouter from './routes/apple-webhooks';
-import googleWebhooksRouter from './routes/google-webhooks';
-import notificationsRouter from './routes/notifications';
-
-// CRON
 import { startAllCrons } from './cron/collector';
 
 dotenv.config();
