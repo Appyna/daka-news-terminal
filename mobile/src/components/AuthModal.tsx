@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { COLORS } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../services/supabaseClient';
 
 interface AuthModalProps {
   visible: boolean;
@@ -23,7 +24,7 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirectToPremium = false, initialTab = 'login' }) => {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>(initialTab);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -32,6 +33,45 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Traduction des erreurs Supabase en français
+  const translateError = (errorMessage: string): string => {
+    const errorMap: Record<string, string> = {
+      'Invalid login credentials': 'Email ou mot de passe incorrect',
+      'Email not confirmed': 'Veuillez confirmer votre email avant de vous connecter',
+      'User already registered': 'Un compte existe déjà avec cet email',
+      'Password should be at least 6 characters': 'Le mot de passe doit contenir au moins 6 caractères',
+      'Unable to validate email address: invalid format': 'Format d\'email invalide',
+      'Invalid email': 'Email invalide',
+      'Email rate limit exceeded': 'Trop de tentatives. Veuillez réessayer dans quelques minutes',
+      'Signups not allowed for this instance': 'Les inscriptions sont temporairement désactivées',
+      'Email link is invalid or has expired': 'Le lien email est invalide ou a expiré',
+      'Password is too weak': 'Le mot de passe est trop faible. Utilisez au moins une majuscule, un chiffre et un caractère spécial',
+      'New password should be different from the old password': 'Le nouveau mot de passe doit être différent de l\'ancien',
+      'User not found': 'Aucun compte trouvé avec cet email',
+      'Token has expired or is invalid': 'Le lien a expiré. Veuillez demander un nouveau lien',
+      'For security purposes, you can only request this once every 60 seconds': 'Pour des raisons de sécurité, attendez 60 secondes avant de réessayer',
+    };
+
+    // Chercher une correspondance exacte
+    if (errorMap[errorMessage]) {
+      return errorMap[errorMessage];
+    }
+
+    // Chercher une correspondance partielle
+    for (const [key, value] of Object.entries(errorMap)) {
+      if (errorMessage.includes(key)) {
+        return value;
+      }
+    }
+
+    // Message par défaut si aucune traduction trouvée
+    return errorMessage.includes('email') || errorMessage.includes('Email')
+      ? 'Erreur avec l\'email. Vérifiez le format'
+      : errorMessage.includes('password') || errorMessage.includes('Password')
+      ? 'Erreur avec le mot de passe'
+      : 'Une erreur est survenue. Veuillez réessayer';
+  };
 
   const handleSubmit = async () => {
     setError('');
@@ -62,7 +102,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Une erreur est survenue');
+      const translatedError = translateError(err.message || 'Une erreur est survenue');
+      setError(translatedError);
+      console.error('Auth error:', err.message);
     } finally {
       setLoading(false);
     }
@@ -77,14 +119,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
     setLoading(true);
     setError('');
     try {
-      // TODO: Implémenter reset password avec Supabase
-      setSuccessMessage('Email de réinitialisation envoyé !');
+      await resetPassword(email);
+      setSuccessMessage('Email de réinitialisation envoyé ! Vérifiez votre boîte mail.');
       setTimeout(() => {
         setShowResetPassword(false);
         setSuccessMessage('');
-      }, 2000);
+        setEmail('');
+      }, 3000);
     } catch (err: any) {
-      setError(err.message);
+      const translatedError = translateError(err.message || 'Erreur lors de l\'envoi de l\'email');
+      setError(translatedError);
+      console.error('Reset password error:', err.message);
     } finally {
       setLoading(false);
     }

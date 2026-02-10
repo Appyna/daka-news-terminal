@@ -7,10 +7,15 @@ import {
   Pressable,
   StyleSheet,
   ActivityIndicator,
+  Linking,
+  Alert,
+  Platform,
 } from 'react-native';
 import { COLORS, FREE_SOURCES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthModal } from './AuthModal';
+import { apiService } from '../services/apiService';
+import { iapService } from '../services/IAPService';
 import Svg, { Path, Circle } from 'react-native-svg';
 
 interface PremiumModalProps {
@@ -25,6 +30,33 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
   const [showTransition, setShowTransition] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [loading, setLoading] = useState(false);
+  const [localizedPrice, setLocalizedPrice] = useState('1,99 €'); // Prix par défaut (fallback)
+  const [loadingPrice, setLoadingPrice] = useState(true);
+
+  // 🎯 Récupérer le prix localisé au chargement du modal
+  useEffect(() => {
+    if (visible) {
+      fetchLocalizedPrice();
+    }
+  }, [visible]);
+
+  const fetchLocalizedPrice = async () => {
+    try {
+      setLoadingPrice(true);
+      const products = await iapService.getProducts();
+      
+      if (products.length > 0) {
+        // products[0].price contient déjà le prix formaté localement (ex: "1,99 €" ou "7,49 ₪")
+        setLocalizedPrice(products[0].price);
+        console.log('✅ Prix localisé récupéré:', products[0].price);
+      }
+    } catch (err) {
+      console.error('❌ Erreur récupération prix:', err);
+      // Garde le fallback "1,99 €"
+    } finally {
+      setLoadingPrice(false);
+    }
+  };
 
   // Si l'utilisateur vient de s'inscrire, montrer l'écran de transition
   useEffect(() => {
@@ -47,13 +79,37 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
   const redirectToCheckout = async () => {
     if (!user || !profile) return;
     setLoading(true);
+    
     try {
-      // TODO: Implémenter Stripe checkout
-      // const response = await apiService.createStripeCheckoutSession(user.id, profile.email);
-      // Linking.openURL(response.url);
-      console.log('Redirection vers Stripe...');
+      // Sur iOS/Android natif : utiliser In-App Purchase
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        console.log('🛒 Lancement IAP natif...');
+        const success = await iapService.purchasePremium(user.id);
+        
+        if (success) {
+          Alert.alert(
+            'Abonnement activé !',
+            'Votre abonnement Premium est maintenant actif. Profitez de toutes les sources !',
+            [{
+              text: 'Parfait',
+              onPress: () => {
+                onClose();
+                // Refresh profile pour voir le changement
+                setTimeout(() => window.location.reload(), 500);
+              }
+            }]
+          );
+        }
+      } else {
+        // Sur web : utiliser Stripe (fallback)
+        console.log('💳 Lancement Stripe checkout (web)...');
+        const response = await apiService.createStripeCheckoutSession(user.id, profile.email);
+        Linking.openURL(response.url);
+        console.log('✅ Redirection vers Stripe checkout');
+      }
     } catch (err) {
-      console.error('Erreur Stripe:', err);
+      console.error('❌ Erreur paiement:', err);
+      Alert.alert('Erreur', 'Impossible de finaliser le paiement. Réessayez plus tard.');
     } finally {
       setLoading(false);
     }
@@ -143,8 +199,14 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
 
             {/* Prix */}
             <View style={styles.pricingSection}>
-              <Text style={styles.price}>1,99€</Text>
-              <Text style={styles.priceSubtext}>/mois</Text>
+              {loadingPrice ? (
+                <ActivityIndicator color={COLORS.accentYellow1} size="small" />
+              ) : (
+                <>
+                  <Text style={styles.price}>{localizedPrice}</Text>
+                  <Text style={styles.priceSubtext}>/mois</Text>
+                </>
+              )}
             </View>
 
             {/* CTA et Retour avec vrais boutons */}

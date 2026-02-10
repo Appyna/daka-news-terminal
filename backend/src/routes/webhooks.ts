@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Initialiser Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2026-01-28.clover',
 });
 
 // Initialiser Supabase avec service_role key pour bypass RLS
@@ -116,8 +116,8 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
               .from('subscriptions')
               .update({
                 status: 'active',
-                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                current_period_start: new Date().toISOString(),
+                current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
               })
               .eq('stripe_customer_id', customerId);
           } else if (subscription.status === 'canceled' || subscription.status === 'unpaid') {

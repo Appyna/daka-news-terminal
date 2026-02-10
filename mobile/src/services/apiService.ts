@@ -1,13 +1,28 @@
 import { API_BASE_URL } from '../constants';
 import { Article, Source } from '../types';
+import { supabase } from './supabaseClient';
 
 export const apiService = {
-  // ✅ NOUVEAU: Récupérer tous les articles avec cache backend (3min)
+  // ✅ NOUVEAU: Récupérer tous les articles avec cache backend (3min) + filtrage premium
   async getAllNews(): Promise<Article[]> {
-    const response = await fetch(`${API_BASE_URL}/news`);
-    if (!response.ok) throw new Error('Failed to fetch news');
-    const data = await response.json();
-    return data.success ? data.articles : [];
+    try {
+      // Récupérer l'utilisateur connecté
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
+      
+      // Appeler le backend avec userId pour filtrage premium
+      const url = userId 
+        ? `${API_BASE_URL}/news?userId=${userId}`
+        : `${API_BASE_URL}/news`;
+      
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch news');
+      const data = await response.json();
+      return data.success ? data.articles : [];
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      throw error;
+    }
   },
 
   // Utilise getAllNews et filtre localement par source

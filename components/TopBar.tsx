@@ -2,15 +2,35 @@
 import React, { useState, useEffect } from 'react';
 import { COLORS } from '../src/constants';
 import Logo from './Logo';
+import Sidebar from './Sidebar';
 import { useAuth } from '../src/contexts/AuthContext';
 import { AuthModal } from '../src/components/AuthModal';
 import { PremiumModal } from '../src/components/PremiumModal';
 
-const TopBar: React.FC = () => {
-  const { user, profile, signOut, isPremium, loading, showPasswordResetModal, clearPasswordResetModal } = useAuth();
+interface TopBarProps {
+  menuOpen: boolean;
+  setMenuOpen: (open: boolean) => void;
+  currentCountry: string;
+  currentSource: string;
+  onSelectFlux: (country: string, source: string) => void;
+  isPremium: boolean;
+  onPremiumRequired: () => void;
+}
+
+const TopBar: React.FC<TopBarProps> = ({ 
+  menuOpen, 
+  setMenuOpen, 
+  currentCountry, 
+  currentSource, 
+  onSelectFlux, 
+  isPremium, 
+  onPremiumRequired 
+}) => {
+  const { user, profile, signOut, showPasswordResetModal, clearPasswordResetModal } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const isPremiumUser = profile?.subscription_tier === 'PREMIUM';
 
   // Ouvrir le modal automatiquement quand PASSWORD_RECOVERY est détecté
   useEffect(() => {
@@ -41,13 +61,22 @@ const TopBar: React.FC = () => {
       className="h-[64px] border-b border-white/5 flex items-center justify-between px-6 z-20"
       style={{ backgroundColor: COLORS.dark2 }}
     >
+      {/* Menu hamburger flux/sources en haut à gauche */}
+      <button
+        onClick={() => setMenuOpen(!menuOpen)}
+        className="p-2 hover:bg-white/5 rounded-md transition-colors"
+        aria-label="Menu des sources"
+      >
+        <svg className="w-6 h-6" style={{ color: COLORS.accentYellow1 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
       <Logo />
 
       <div className="flex items-center gap-6">
         {/* Auth section */}
-        {loading ? (
-          <div className="w-10 h-10 rounded-full bg-white/10 animate-pulse" />
-        ) : user && profile ? (
+        {user && profile ? (
           <div className="relative ml-auto">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
@@ -56,7 +85,7 @@ const TopBar: React.FC = () => {
               {/* Avatar avec badge premium */}
               <div className="relative">
                 <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-light text-[1.30rem] shadow-lg"
+                  className="w-9 h-9 rounded-full flex items-center justify-center font-light text-[1.15rem] shadow-lg"
                   style={{
                     backgroundColor: COLORS.dark2,
                     color: COLORS.accentYellow1,
@@ -65,7 +94,7 @@ const TopBar: React.FC = () => {
                 >
                   {profile.username.charAt(0).toUpperCase()}
                 </div>
-                {isPremium && (
+                {isPremiumUser && (
                   <div className="absolute -bottom-0.5 -right-0.5">
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill={COLORS.accentYellow1}>
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -89,7 +118,7 @@ const TopBar: React.FC = () => {
                   </div>
                   
                   <div className="py-2">
-                    {isPremium ? (
+                    {isPremiumUser ? (
                       <button 
                         onClick={async () => {
                           setShowUserMenu(false);
@@ -169,6 +198,17 @@ const TopBar: React.FC = () => {
       
       {/* Premium Modal */}
       <PremiumModal isOpen={showPremiumModal} onClose={() => setShowPremiumModal(false)} />
+
+      {/* Sidebar pour les flux/sources */}
+      <Sidebar
+        isOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        currentCountry={currentCountry}
+        currentSource={currentSource}
+        onSelectFlux={onSelectFlux}
+        isPremium={isPremium}
+        onPremiumRequired={onPremiumRequired}
+      />
     </header>
   );
 };

@@ -8,6 +8,7 @@ import { PremiumModal } from './components/PremiumModal';
 import { useAuth } from './contexts/AuthContext';
 import { NewsItem, NewsColumn as NewsColumnType } from './types-old';
 import { COLORS } from './constants';
+import { getAllNews } from './services/apiService';
 
 const API_BASE_URL = 'https://daka-news-backend.onrender.com/api';
 
@@ -52,53 +53,55 @@ const App: React.FC = () => {
       try {
         setIsLoading(true);
         
-        const sourcesRes = await fetch(`${API_BASE_URL}/sources`);
-        const sourcesData = await sourcesRes.json();
+        // ✅ Utiliser getAllNews() avec cache 3min au lieu d'appels multiples
+        const newsData = await getAllNews();
         
-        if (!sourcesData.success) return;
+        if (!newsData.success || !newsData.articles) return;
+
+        // Grouper les articles par source
+        const sourceMap = new Map<string, any[]>();
+        const sourceColors = new Map<string, string>();
+        
+        for (const article of newsData.articles) {
+          if (!sourceMap.has(article.source)) {
+            sourceMap.set(article.source, []);
+            sourceColors.set(article.source, article.color);
+          }
+          sourceMap.get(article.source)!.push(article);
+        }
 
         const newColumns: NewsColumnType[] = [];
         
-        for (const [category, sources] of Object.entries(sourcesData.sources) as Array<[string, any[]]>) {
-          for (const sourceInfo of sources) {
-            try {
-              const feedRes = await fetch(`${API_BASE_URL}/feeds/${encodeURIComponent(sourceInfo.name)}`);
-              const feedData = await feedRes.json();
-              
-              if (feedData.success && feedData.articles) {
-                const items: NewsItem[] = feedData.articles.map((article: any) => {
-                  const pubDate = new Date(article.pub_date);
-                  const time = `${String(pubDate.getHours()).padStart(2, '0')}:${String(pubDate.getMinutes()).padStart(2, '0')}`;
-                  
-                  return {
-                    id: article.id,
-                    time,
-                    title: article.translation || article.title,
-                    translation: article.title_original,
-                    source: sourceInfo.name,
-                    priority: article.priority || 'normal',
-                    color: article.priority === 'high' ? sourceInfo.color : '#FFFFFF',
-                    country: category,
-                    content: article.content || article.title_original,
-                    tags: [category, sourceInfo.name],
-                    pubDate: pubDate.getTime()
-                  };
-                });
+        for (const [sourceName, articles] of sourceMap.entries()) {
+          const items: NewsItem[] = articles.map((article: any) => {
+            const pubDate = new Date(article.pub_date);
+            const time = `${String(pubDate.getHours()).padStart(2, '0')}:${String(pubDate.getMinutes()).padStart(2, '0')}`;
+            
+            return {
+              id: article.id,
+              time,
+              title: article.translation || article.title,
+              translation: article.title_original,
+              source: sourceName,
+              priority: article.priority || 'normal',
+              color: article.priority === 'high' ? sourceColors.get(sourceName) : '#FFFFFF',
+              country: article.country,
+              content: article.content || article.title_original,
+              tags: [article.country, sourceName],
+              pubDate: pubDate.getTime(),
+              url: article.link
+            };
+          });
 
-                items.sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0));
-                
-                newColumns.push({
-                  id: `${category.toLowerCase()}-${sourceInfo.name.toLowerCase().replace(/\s+/g, '-')}`,
-                  media: `${category} - ${sourceInfo.name}`,
-                  backgroundColor: '#1C1940',
-                  headerColor: sourceInfo.color,
-                  items
-                });
-              }
-            } catch (error) {
-              console.error(`Erreur ${sourceInfo.name}:`, error);
-            }
-          }
+          items.sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0));
+          
+          newColumns.push({
+            id: `${articles[0].country.toLowerCase()}-${sourceName.toLowerCase().replace(/\s+/g, '-')}`,
+            media: `${articles[0].country} - ${sourceName}`,
+            backgroundColor: '#1C1940',
+            headerColor: sourceColors.get(sourceName) || '#FFFFFF',
+            items
+          });
         }
 
         setAllColumns(newColumns);
@@ -142,24 +145,9 @@ const App: React.FC = () => {
 
   return (
     <div className="w-full h-screen flex flex-col overflow-hidden" style={{ backgroundColor: COLORS.dark3 }}>
-      <TopBar />
-      
-      <button
-        onClick={() => setMenuOpen(true)}
-        className="fixed left-0 top-1/2 -translate-y-1/2 z-30 text-2xl font-medium px-3 py-2.5 rounded-r-lg"
-        style={{ 
-          color: COLORS.accentYellow1,
-          backgroundColor: '#221C45',
-          boxShadow: `0.5px 0 0 0 ${COLORS.accentYellow1}80, 0 0.5px 0 0 ${COLORS.accentYellow1}80, 0 -0.5px 0 0 ${COLORS.accentYellow1}80`
-        }}
-        aria-label="Ouvrir le menu"
-      >
-        ☰
-      </button>
-
-      <Sidebar
-        isOpen={menuOpen}
-        onClose={() => setMenuOpen(false)}
+      <TopBar 
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
         currentCountry={currentCountry}
         currentSource={currentSource}
         onSelectFlux={handleSelectFlux}

@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Share, Platform } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Share, Platform, Linking } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Article } from '../types';
 import { COLORS } from '../constants';
+import Svg, { Path } from 'react-native-svg';
 
 interface NewsCardProps {
   article: Article;
@@ -23,11 +24,18 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, isFocused, onPress 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       await Share.share({
-        message: `DAKA News | ${article.source} · ${article.title}\n\nhttps://daka-news.com`,
-        // Note: L'image sera ajoutée dans le build production (pas disponible dans Expo Go)
+        message: `${article.title}\n\nSource: ${article.source}\n${article.link}`,
       });
     } catch (error) {
       console.error('Error sharing:', error);
+    }
+  };
+
+  const handleOpenSource = (e: any) => {
+    e?.stopPropagation?.();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (article.link) {
+      Linking.openURL(article.link);
     }
   };
 
@@ -46,19 +54,10 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, isFocused, onPress 
         isFocused ? styles.cardFocused : (pressed && styles.cardPressed),
       ]}
     >
-      {/* Header: time + source + share button */}
+      {/* Header: time + source */}
       <View style={[styles.header, isFocused && styles.headerFocused]}>
         <Text style={styles.time}>{formatTime(article.pub_date)}</Text>
-        
-        <View style={styles.headerRight}>
-          {isFocused && (
-            <Pressable onPress={handleShare} style={styles.shareButton}>
-              <Text style={styles.shareIcon}>↗</Text>
-              <Text style={styles.shareText}>Partager</Text>
-            </Pressable>
-          )}
-          <Text style={styles.sourceBadge}>{article.source}</Text>
-        </View>
+        <Text style={styles.sourceBadge}>{article.source}</Text>
       </View>
 
       {/* Titre */}
@@ -81,6 +80,51 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, isFocused, onPress 
           >
             {article.title_original}
           </Text>
+        </View>
+      )}
+
+      {/* Boutons d'action (si focusé) */}
+      {isFocused && (
+        <View style={styles.actionsContainer}>
+          <Pressable 
+            onPress={handleOpenSource} 
+            style={({ pressed }) => [
+              styles.actionButton,
+              styles.primaryButton,
+              pressed && styles.actionButtonPressed
+            ]}
+          >
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                stroke={COLORS.dark1}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+            <Text style={styles.primaryButtonText}>Voir l'article d'origine</Text>
+          </Pressable>
+
+          <Pressable 
+            onPress={handleShare} 
+            style={({ pressed }) => [
+              styles.actionButton,
+              styles.secondaryButton,
+              pressed && styles.actionButtonPressed
+            ]}
+          >
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                stroke={COLORS.white}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+            <Text style={styles.secondaryButtonText}>Partager</Text>
+          </Pressable>
         </View>
       )}
     </Pressable>
@@ -120,30 +164,6 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     color: 'rgba(255, 255, 255, 0.4)',
   },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  shareButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: 'transparent',
-    marginTop: -6,
-  },
-  shareIcon: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  shareText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
   sourceBadge: {
     fontSize: 10,
     fontWeight: '700',
@@ -182,5 +202,42 @@ const styles = StyleSheet.create({
   sourceContentRTL: {
     textAlign: 'right',
     writingDirection: 'rtl',
+  },
+  // Nouveau: Actions container
+  actionsContainer: {
+    marginTop: 20,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+  actionButtonPressed: {
+    opacity: 0.7,
+  },
+  primaryButton: {
+    backgroundColor: COLORS.accentYellow1,
+  },
+  primaryButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.dark1,
+  },
+  secondaryButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  secondaryButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.white,
   },
 });

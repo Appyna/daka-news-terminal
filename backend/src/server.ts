@@ -79,32 +79,58 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// Endpoint /api/news avec cache 3min
+// Sources gratuites accessibles sans premium
+const FREE_SOURCES = ['Ynet', 'BFM TV', 'BBC World'];
+
+// Endpoint /api/news avec cache 3min + filtrage premium
 app.get('/api/news', async (req: Request, res: Response) => {
+  const userId = req.query.userId as string | undefined;
   const now = Date.now();
-  if (newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION) {
-    return res.json({
-      success: true,
-      cached: true,
-      articles: newsCache
-    });
-  }
+  
   try {
-    // Récupérer les articles par catégorie (France, Israel, Monde)
-    const categories = ['France', 'Israel', 'Monde'];
-    let allArticles: any[] = [];
-    for (const cat of categories) {
-      const articles = await getArticlesByCategory(cat);
-      allArticles = allArticles.concat(articles);
+    // Récupérer depuis le cache si valide
+    let allArticles: any[];
+    if (newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION) {
+      allArticles = newsCache;
+    } else {
+      // Récupérer les articles par catégorie (France, Israel, Monde)
+      const categories = ['France', 'Israel', 'Monde'];
+      allArticles = [];
+      for (const cat of categories) {
+        const articles = await getArticlesByCategory(cat);
+        allArticles = allArticles.concat(articles);
+      }
+      // Tri par date décroissante
+      allArticles.sort((a, b) => new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime());
+      newsCache = allArticles;
+      newsCacheTimestamp = now;
     }
-    // Tri par date décroissante
-    allArticles.sort((a, b) => new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime());
-    newsCache = allArticles;
-    newsCacheTimestamp = now;
+
+    // Vérifier le statut premium de l'utilisateur
+    let isPremium = false;
+    if (userId) {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('subscription_tier')
+          .eq('id', userId)
+          .single();
+        isPremium = profile?.subscription_tier === 'PREMIUM';
+      } catch (err) {
+        console.error('Error checking premium status:', err);
+      }
+    }
+
+    // Filtrer les articles selon le statut premium
+    const filteredArticles = isPremium 
+      ? allArticles 
+      : allArticles.filter(article => FREE_SOURCES.includes(article.source));
+
     return res.json({
       success: true,
-      cached: false,
-      articles: allArticles
+      cached: newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION,
+      articles: filteredArticles,
+      isPremium
     });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });

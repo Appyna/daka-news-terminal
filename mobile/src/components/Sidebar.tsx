@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Modal, Pressable, ScrollView, StyleSheet, StatusBar, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { COLORS, FREE_SOURCES } from '../constants';
+import { COLORS } from '../constants';
 import Svg, { Path } from 'react-native-svg';
 
 interface SidebarProps {
@@ -16,21 +16,17 @@ interface SidebarProps {
   onPremiumPress: () => void;
 }
 
-const fluxByCountry = {
-  'Israel': ['Ynet', 'Arutz 7', 'Arutz 14', 'Israel Hayom', 'Walla'],
-  'France': ['BFM TV', 'France Info', 'Le Monde'],
-  'Monde': [
-    'BBC World',
-    'Reuters',
-    'ANADOLU (Agence de presse turque)',
-    'Bloomberg',
-    'FOXNews',
-    'New York Times',
-    'POLITICO',
-    'RT - Russie',
-    'TASS (Agence de presse russe)',
-  ],
-};
+interface SourceItem {
+  name: string;
+  color: string;
+  free_tier: boolean;
+}
+
+interface SourcesData {
+  Israel: SourceItem[];
+  France: SourceItem[];
+  Monde: SourceItem[];
+}
 
 const LockIcon = () => (
   <Svg width={10} height={10} viewBox="0 0 12 16" fill={COLORS.accentYellow1}>
@@ -51,6 +47,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(-300)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const [sources, setSources] = useState<SourcesData>({ Israel: [], France: [], Monde: [] });
+  const [loading, setLoading] = useState(true);
+
+  // Charger les sources depuis l'API
+  useEffect(() => {
+    const loadSources = async () => {
+      try {
+        const response = await fetch('https://daka-news-backend.onrender.com/api/sources');
+        const data = await response.json();
+        if (data.success) {
+          setSources(data.sources);
+        }
+      } catch (error) {
+        console.error('Erreur chargement sources:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadSources();
+  }, []);
 
   useEffect(() => {
     if (visible) {
@@ -91,14 +108,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [visible, slideAnim, overlayOpacity]);
 
-  const handleSourcePress = (country: string, source: string) => {
+  const handleSourcePress = (country: string, sourceName: string, isFree: boolean) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const isLocked = !isPremium && !FREE_SOURCES.includes(source);
+    const isLocked = !isPremium && !isFree;
     if (isLocked) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       onPremiumPress();
     } else {
-      onSelectFlux(country, source);
+      onSelectFlux(country, sourceName);
     }
   };
 
@@ -141,43 +158,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {Object.entries(fluxByCountry).map(([country, sources]) => (
-              <View key={country} style={styles.categoryBlock}>
-                <View style={styles.categoryHeader}>
-                  <Text style={styles.categoryTitle}>• {country.toUpperCase()}</Text>
-                </View>
-                <View style={styles.sourcesContainer}>
-                  {sources.map((source) => {
-                    const isLocked = !isPremium && !FREE_SOURCES.includes(source);
-                    const isActive = currentCountry === country && currentSource === source;
-
-                    return (
-                      <Pressable
-                        key={source}
-                        onPress={() => handleSourcePress(country, source)}
-                        style={[styles.sourceRow, isActive && styles.sourceRowActive]}
-                      >
-                        <Text
-                          style={[
-                            styles.sourceText,
-                            isActive && styles.sourceTextActive,
-                            isLocked && styles.sourceTextLocked,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          · {source}
-                        </Text>
-                        {isLocked && (
-                          <View style={styles.lockIconContainer}>
-                            <LockIcon />
-                          </View>
-                        )}
-                      </Pressable>
-                    );
-                  })}
-                </View>
+            {loading ? (
+              <View style={{ padding: 24, alignItems: 'center' }}>
+                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>Chargement des sources...</Text>
               </View>
-            ))}
+            ) : (
+              Object.entries(sources).map(([country, sourcesList]) => (
+                <View key={country} style={styles.categoryBlock}>
+                  <View style={styles.categoryHeader}>
+                    <Text style={styles.categoryTitle}>• {country.toUpperCase()}</Text>
+                  </View>
+                  <View style={styles.sourcesContainer}>
+                    {sourcesList.map((sourceItem) => {
+                      const isLocked = !isPremium && !sourceItem.free_tier;
+                      const isActive = currentCountry === country && currentSource === sourceItem.name;
+
+                      return (
+                        <Pressable
+                          key={sourceItem.name}
+                          onPress={() => handleSourcePress(country, sourceItem.name, sourceItem.free_tier)}
+                          style={[styles.sourceRow, isActive && styles.sourceRowActive]}
+                        >
+                          <Text
+                            style={[
+                              styles.sourceText,
+                              isActive && styles.sourceTextActive,
+                              isLocked && styles.sourceTextLocked,
+                            ]}
+                            numberOfLines={1}
+                          >
+                            · {sourceItem.name}
+                          </Text>
+                          {isLocked && (
+                            <View style={styles.lockIconContainer}>
+                              <LockIcon />
+                            </View>
+                          )}
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))
+            )}
           </ScrollView>
 
           <View style={styles.footer}>
@@ -300,7 +323,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sourceTextLocked: {
-    color: 'rgba(255, 255, 255, 0.95)',
+    color: 'rgba(255, 255, 255, 0.75)',
   },
   lockIconContainer: {
     marginLeft: 8,

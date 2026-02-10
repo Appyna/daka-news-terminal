@@ -163,17 +163,10 @@ function MainApp() {
   const loadArticles = async (sourceName: string) => {
     setLoading(true);
     try {
-      // ✅ Utiliser /api/news avec cache backend (ne crash jamais)
-      const allArticles = await apiService.getAllNews();
-      
-      // Filtrer par source localement
-      const filtered = allArticles.filter(a => a.source === sourceName);
-      
-      // Trier par date décroissante
-      const sorted = filtered.sort((a, b) => 
+      const data = await apiService.getFeeds(sourceName);
+      const sorted = data.sort((a, b) => 
         new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime()
       );
-      
       setArticles(sorted);
     } catch (error) {
       console.error(`Error loading ${sourceName}:`, error);

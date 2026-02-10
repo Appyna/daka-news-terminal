@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { COLORS } from '../src/constants';
 
 interface SidebarProps {
@@ -8,21 +8,44 @@ interface SidebarProps {
   currentCountry: string;
   currentSource: string;
   onSelectFlux: (country: string, source: string) => void;
+  isPremium: boolean;
+  onPremiumRequired: () => void;
 }
 
-const fluxByCountry = {
-  "Israel": [
-    "Arutz 7", "Arutz 14", "Israel Hayom", "Walla", "Ynet"
-  ],
-  "France": [
-    "BFM TV", "France Info", "Le Monde"
-  ],
-  "Monde": [
-    "Reuters", "ANADOLU (Agence de presse turque)", "BBC World", "Bloomberg", "FOXNews", "New York Times", "POLITICO", "RT - Russie", "TASS (Agence de presse russe)"
-  ]
-};
+interface SourceItem {
+  name: string;
+  color: string;
+  free_tier: boolean;
+}
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, currentSource, onSelectFlux }) => {
+interface SourcesData {
+  Israel: SourceItem[];
+  France: SourceItem[];
+  Monde: SourceItem[];
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, currentSource, onSelectFlux, isPremium, onPremiumRequired }) => {
+  const [sources, setSources] = useState<SourcesData>({ Israel: [], France: [], Monde: [] });
+  const [loading, setLoading] = useState(true);
+
+  // Charger les sources depuis l'API
+  useEffect(() => {
+    const loadSources = async () => {
+      try {
+        const response = await fetch('https://daka-news-backend.onrender.com/api/sources');
+        const data = await response.json();
+        if (data.success) {
+          setSources(data.sources);
+        }
+      } catch (error) {
+        console.error('Erreur chargement sources:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadSources();
+  }, []);
   return (
     <>
       {/* Overlay */}
@@ -57,46 +80,63 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
         </div>
 
         <nav className="flex-1 overflow-y-auto p-2">
-          {Object.entries(fluxByCountry).map(([country, sources]) => {
-            const countryColor = "#F5C518";
-            
-            return (
-              <div key={country} className="mb-3">
-                <div className="px-3 py-2 flex items-center gap-2">
-                  <div 
-                    className="w-1 h-1 rounded-full"
-                    style={{ backgroundColor: countryColor }}
-                  />
-                  <span 
-                    className="text-sm font-bold uppercase tracking-wider"
-                    style={{ color: countryColor }}
-                  >
-                    {country}
-                  </span>
-                </div>
+          {loading ? (
+            <div className="p-4 text-center text-white/50">Chargement...</div>
+          ) : (
+            Object.entries(sources).map(([country, sourcesList]) => {
+              const countryColor = "#F5C518";
+              
+              return (
+                <div key={country} className="mb-3">
+                  <div className="px-3 py-2 flex items-center gap-2">
+                    <div 
+                      className="w-1 h-1 rounded-full"
+                      style={{ backgroundColor: countryColor }}
+                    />
+                    <span 
+                      className="text-sm font-bold uppercase tracking-wider"
+                      style={{ color: countryColor }}
+                    >
+                      {country}
+                    </span>
+                  </div>
 
-                <div className="ml-4 space-y-0.5">
-                  {sources.map((source) => {
-                    const isActive = currentCountry === country && currentSource === source;
-                    return (
-                      <button
-                        key={source}
-                        onClick={() => onSelectFlux(country, source)}
-                        className={`w-full text-left px-3 py-2 rounded-md transition-all text-xs flex items-center gap-2 ${
-                          isActive 
-                            ? 'bg-yellow-500/15 text-yellow-500 font-semibold border-l-2 border-yellow-500' 
-                            : 'hover:bg-white/5 text-white/60 hover:text-white/80 border-l-2 border-transparent'
-                        }`}
-                      >
-                        <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-yellow-500' : 'bg-white/20'}`} />
-                        {source}
-                      </button>
-                    );
-                  })}
+                  <div className="ml-4 space-y-0.5">
+                    {sourcesList.map((sourceItem) => {
+                      const isActive = currentCountry === country && currentSource === sourceItem.name;
+                      const isLocked = !sourceItem.free_tier && !isPremium;
+                      
+                      return (
+                        <button
+                          key={sourceItem.name}
+                          onClick={() => {
+                            if (isLocked) {
+                              onPremiumRequired();
+                            } else {
+                              onSelectFlux(country, sourceItem.name);
+                            }
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-md transition-all text-xs flex items-center gap-2 ${
+                            isActive 
+                              ? 'bg-yellow-500/15 text-yellow-500 font-semibold border-l-2 border-yellow-500' 
+                              : 'hover:bg-white/5 text-white/60 hover:text-white/80 border-l-2 border-transparent'
+                          }`}
+                        >
+                          <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-yellow-500' : 'bg-white/20'}`} />
+                          {sourceItem.name}
+                          {isLocked && (
+                            <svg className="w-3 h-3 ml-auto" fill="#F5C518" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </nav>
         
         <div className="p-4 border-t border-white/5">
@@ -104,7 +144,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             <span className="font-semibold text-white/50 uppercase tracking-wider">Live</span>
             <span className="text-white/30">•</span>
-            <span className="text-white/30 font-mono">{Object.values(fluxByCountry).flat().length} sources</span>
+            <span className="text-white/30 font-mono">{Object.values(sources).flat().length} sources</span>
           </div>
         </div>
       </div>

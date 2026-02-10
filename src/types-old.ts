@@ -10,6 +10,7 @@ export interface NewsItem {
   content?: string;
   tags?: string[];
   pubDate?: number;
+  url?: string;
 }
 
 export interface NewsColumn {

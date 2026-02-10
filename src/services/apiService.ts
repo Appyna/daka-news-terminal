@@ -1,4 +1,5 @@
 import type { Feed, Article } from '../types'
+import { supabase } from '../lib/supabase'
 
 const API_BASE_URL = 'https://daka-news-backend.onrender.com/api'
 
@@ -6,6 +7,7 @@ interface BackendNewsResponse {
   success: boolean
   cached: boolean
   articles: Array<BackendArticle & { source: string }>
+  isPremium?: boolean
 }
 
 interface BackendArticle {
@@ -28,26 +30,34 @@ interface BackendFeedResponse {
   articles: BackendArticle[]
 }
 
+export async function getAllNews(): Promise<BackendNewsResponse> {
+  try {
+    // Récupérer l'utilisateur connecté
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+    
+    // Appeler le backend avec userId pour filtrage premium
+    const url = userId 
+      ? `${API_BASE_URL}/news?userId=${userId}`
+      : `${API_BASE_URL}/news`;
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch news');
+    
+    const data: BackendNewsResponse = await response.json();
+    return data; // Retourner l'objet complet
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    throw error;
+  }
+}
+
 interface BackendSourcesResponse {
   success: boolean
   sources: {
     Israel: Array<{ name: string; color: string; free_tier: boolean }>
     France: Array<{ name: string; color: string; free_tier: boolean }>
     Monde: Array<{ name: string; color: string; free_tier: boolean }>
-  }
-}
-
-/**
- * ✅ NOUVEAU: Récupère tous les articles avec cache backend (3min)
- */
-export async function getAllNews(): Promise<BackendNewsResponse> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/news`)
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    return await response.json()
-  } catch (error) {
-    console.error('❌ Erreur getAllNews:', error)
-    throw error
   }
 }
 

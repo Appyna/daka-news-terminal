@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAKA News - Splash Screen Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+
+        /* Container avec les dimensions exactes du splash screen */
+        #splash-container {
+            width: 2048px;
+            height: 2732px;
+            background: #1A1838;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transform-origin: top left;
+        }
+
+        /* Logo DAKA - Style identique au header */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .daka-text {
+            font-size: 180px;
+            font-weight: 800;
+            letter-spacing: -8px;
+            color: #FFFFFF;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+        }
+
+        .news-badge {
+            background-color: #F5C518;
+            padding: 16px 24px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .news-text {
+            font-size: 80px;
+            font-weight: 700;
+            color: #1A1838;
+            letter-spacing: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+        }
+
+        /* Scaling pour preview dans le navigateur */
+        @media screen and (max-width: 2100px) {
+            #splash-container {
+                transform: scale(0.4);
+            }
+        }
+
+        /* Instructions */
+        .instructions {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-width: 400px;
+            z-index: 1000;
+        }
+
+        .instructions h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #1A1838;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .instructions code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            background: #F5C518;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #FFD93D;
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        <h2>🎨 Instructions</h2>
+        <ol>
+            <li>Clique sur le bouton ci-dessous</li>
+            <li>L'image sera téléchargée automatiquement</li>
+            <li>Renomme-la en <code>splash-icon.png</code></li>
+            <li>Remplace le fichier dans <code>mobile/assets/</code></li>
+        </ol>
+        <button onclick="captureAndDownload()">📥 Télécharger le Splash Screen</button>
+    </div>
+
+    <div id="splash-container">
+        <div class="logo-container">
+            <div class="daka-text">DAKA</div>
+            <div class="news-badge">
+                <div class="news-text">NEWS</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        async function captureAndDownload() {
+            const container = document.getElementById('splash-container');
+            const instructions = document.querySelector('.instructions');
+            
+            // Cacher les instructions pendant la capture
+            instructions.style.display = 'none';
+            
+            // Réinitialiser le scale pour la capture
+            const originalTransform = container.style.transform;
+            container.style.transform = 'scale(1)';
+            
+            try {
+                const canvas = await html2canvas(container, {
+                    width: 2048,
+                    height: 2732,
+                    scale: 1,
+                    backgroundColor: '#1A1838',
+                    logging: false
+                });
+                
+                // Convertir en PNG et télécharger
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = 'splash-icon.png';
+                    link.href = url;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    
+                    alert('✅ Splash screen téléchargé ! Remplace maintenant le fichier dans mobile/assets/');
+                }, 'image/png');
+                
+            } catch (error) {
+                alert('❌ Erreur lors de la capture. Essaie de faire un screenshot manuel (Cmd+Shift+4 sur Mac)');
+                console.error(error);
+            } finally {
+                // Restaurer l'affichage
+                container.style.transform = originalTransform;
+                instructions.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
