@@ -2,7 +2,7 @@ import { API_BASE_URL } from '../constants';
 import { Article, Source } from '../types';
 
 export const apiService = {
-  // ✅ NOUVEAU: Récupérer tous les articles (avec cache backend 3min)
+  // ✅ NOUVEAU: Récupérer tous les articles avec cache backend (3min)
   async getAllNews(): Promise<Article[]> {
     const response = await fetch(`${API_BASE_URL}/news`);
     if (!response.ok) throw new Error('Failed to fetch news');
@@ -10,9 +10,8 @@ export const apiService = {
     return data.success ? data.articles : [];
   },
 
-  // Deprecated: Gardé pour compatibilité backward
+  // Utilise getAllNews et filtre localement par source
   async getFeeds(sourceName: string): Promise<Article[]> {
-    // Utiliser getAllNews et filtrer localement
     const articles = await this.getAllNews();
     return articles.filter(a => a.source === sourceName);
   },
@@ -23,10 +22,10 @@ export const apiService = {
   },
 
   async getSources(): Promise<Source[]> {
-    // Extraire les sources uniques des articles
     const articles = await this.getAllNews();
     const sourcesMap = new Map<string, Source>();
     
+    // Extraire les sources uniques des articles
     for (const article of articles) {
       const key = `${article.source}-${article.country}`;
       if (!sourcesMap.has(key)) {
