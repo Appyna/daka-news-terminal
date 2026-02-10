@@ -136,9 +136,12 @@ export async function collectSourceArticles(source: Source): Promise<number> {
 
     // Traduction automatique (OpenAI gpt-4o-mini) - seulement pour nouveaux articles
     let translation = title;
-    if (!source.skip_translation) {
-      // Détection automatique de la langue source
-      const sourceLang = source.category === 'Israel' ? 'he' : 'en';
+    
+    // Vérifier si traduction nécessaire selon source_lang de la source
+    const sourceLang = (source as any).source_lang || 'fr'; // 'he', 'en', ou 'fr'
+    const needsTranslation = !source.skip_translation && sourceLang !== 'fr';
+    
+    if (needsTranslation) {
       try {
         // Timeout de 15 secondes pour la traduction (au lieu de 5)
         translation = await Promise.race([

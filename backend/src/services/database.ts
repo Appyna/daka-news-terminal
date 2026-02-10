@@ -8,7 +8,7 @@ export async function getActiveSources(): Promise<Source[]> {
     .from('sources')
     .select('*')
     .eq('active', true)
-    .order('category', { ascending: true })
+    .order('category_order', { ascending: true })
     .order('display_order', { ascending: true })
     .order('name', { ascending: true });
 
