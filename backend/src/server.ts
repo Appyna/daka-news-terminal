@@ -1,9 +1,3 @@
-// Ajout pour /api/news avec cache 3min
-import { getArticlesByCategory } from './services/database';
-// Cache global pour les news (24h)
-let newsCache: any[] | null = null;
-let newsCacheTimestamp = 0;
-const NEWS_CACHE_DURATION = 3 * 60 * 1000; // 3 minutes
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -26,45 +20,13 @@ import googleWebhooksRouter from './routes/google-webhooks';
 import notificationsRouter from './routes/notifications';
 
 // CRON
-
-// ...initialisation de dotenv, Sentry, etc...
-
-const app = express();
-
-// ...middlewares, routes, etc...
-
-// Endpoint /api/news avec cache 3min (doit être après la création de app)
-app.get('/api/news', async (req: Request, res: Response) => {
-  const now = Date.now();
-  if (newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION) {
-    return res.json({
-      success: true,
-      cached: true,
-      articles: newsCache
-    });
-  }
-  try {
-    // Récupérer les articles par catégorie (France, Israel, Monde)
-    const categories = ['France', 'Israel', 'Monde'];
-    let allArticles: any[] = [];
-    for (const cat of categories) {
-      const articles = await getArticlesByCategory(cat);
-      allArticles = allArticles.concat(articles);
-    }
-    // Tri par date décroissante
-    allArticles.sort((a, b) => new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime());
-    newsCache = allArticles;
-    newsCacheTimestamp = now;
-    return res.json({
-      success: true,
-      cached: false,
-      articles: allArticles
-    });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
 import { startAllCrons } from './cron/collector';
+
+// Cache pour /api/news
+import { getArticlesByCategory } from './services/database';
+let newsCache: any[] | null = null;
+let newsCacheTimestamp = 0;
+const NEWS_CACHE_DURATION = 3 * 60 * 1000; // 3 minutes
 
 dotenv.config();
 
@@ -115,6 +77,38 @@ app.get('/', (req: Request, res: Response) => {
     status: 'running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Endpoint /api/news avec cache 3min
+app.get('/api/news', async (req: Request, res: Response) => {
+  const now = Date.now();
+  if (newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION) {
+    return res.json({
+      success: true,
+      cached: true,
+      articles: newsCache
+    });
+  }
+  try {
+    // Récupérer les articles par catégorie (France, Israel, Monde)
+    const categories = ['France', 'Israel', 'Monde'];
+    let allArticles: any[] = [];
+    for (const cat of categories) {
+      const articles = await getArticlesByCategory(cat);
+      allArticles = allArticles.concat(articles);
+    }
+    // Tri par date décroissante
+    allArticles.sort((a, b) => new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime());
+    newsCache = allArticles;
+    newsCacheTimestamp = now;
+    return res.json({
+      success: true,
+      cached: false,
+      articles: allArticles
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // API routes
