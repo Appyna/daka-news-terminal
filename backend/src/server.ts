@@ -1,3 +1,41 @@
+// Ajout pour /api/news avec cache 3min
+import { getArticlesByCategory } from './services/database';
+
+// Cache global pour les news (24h)
+let newsCache: any[] | null = null;
+let newsCacheTimestamp = 0;
+const NEWS_CACHE_DURATION = 3 * 60 * 1000; // 3 minutes
+
+app.get('/api/news', async (req: Request, res: Response) => {
+  const now = Date.now();
+  if (newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION) {
+    return res.json({
+      success: true,
+      cached: true,
+      articles: newsCache
+    });
+  }
+  try {
+    // Récupérer les articles par catégorie (France, Israel, Monde)
+    const categories = ['France', 'Israel', 'Monde'];
+    let allArticles: any[] = [];
+    for (const cat of categories) {
+      const articles = await getArticlesByCategory(cat);
+      allArticles = allArticles.concat(articles);
+    }
+    // Tri par date décroissante
+    allArticles.sort((a, b) => new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime());
+    newsCache = allArticles;
+    newsCacheTimestamp = now;
+    return res.json({
+      success: true,
+      cached: false,
+      articles: allArticles
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -17,6 +55,7 @@ import stripeRouter from './routes/stripe';
 import webhooksRouter from './routes/webhooks';
 import appleWebhooksRouter from './routes/apple-webhooks';
 import googleWebhooksRouter from './routes/google-webhooks';
+import notificationsRouter from './routes/notifications';
 
 // CRON
 import { startAllCrons } from './cron/collector';
@@ -76,6 +115,8 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/feeds', feedsRouter);
 app.use('/api/sources', sourcesRouter);
 app.use('/api/admin', adminRouter);app.use('/api/stripe', stripeRouter);
+app.use('/api/notifications', notificationsRouter);
+
 // 404 handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({
