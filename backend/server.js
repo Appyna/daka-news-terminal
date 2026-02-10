@@ -1,3 +1,40 @@
+import { getArticlesByCategory } from './src/services/database.js';
+// Cache global pour les news (24h)
+let newsCache = null;
+let newsCacheTimestamp = 0;
+const NEWS_CACHE_DURATION = 3 * 60 * 1000; // 3 minutes
+
+// Endpoint /api/news : renvoie tous les articles des 24h, avec cache
+app.get('/api/news', async (req, res) => {
+  const now = Date.now();
+  if (newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION) {
+    return res.json({
+      success: true,
+      cached: true,
+      articles: newsCache
+    });
+  }
+  try {
+    // Récupérer les articles par catégorie (France, Israel, Monde)
+    const categories = ['France', 'Israel', 'Monde'];
+    let allArticles = [];
+    for (const cat of categories) {
+      const articles = await getArticlesByCategory(cat);
+      allArticles = allArticles.concat(articles);
+    }
+    // Tri par date décroissante
+    allArticles.sort((a, b) => new Date(b.pub_date) - new Date(a.pub_date));
+    newsCache = allArticles;
+    newsCacheTimestamp = now;
+    return res.json({
+      success: true,
+      cached: false,
+      articles: allArticles
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 import express from 'express';
 import cors from 'cors';
 import fetch from 'node-fetch';
@@ -17,12 +54,31 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
 );
 
-// Cache par channel pour éviter trop d'appels RSSHub
-const channelCache = new Map();
-const CACHE_DURATION = 30000; // 30 secondes
+// Cache global pour les news
+let newsCache = null;
+let newsCacheTimestamp = 0;
+const CACHE_DURATION = 3 * 60 * 1000; // 3 minutes
 
 // Fonction pour récupérer les messages via RSSHub (channels publics)
 async function getTelegramChannelMessages(channelUsername) {
+  // Exemple de route pour les news (à adapter selon ta logique)
+  app.get('/api/news', async (req, res) => {
+    const now = Date.now();
+    if (newsCache && (now - newsCacheTimestamp) < CACHE_DURATION) {
+      return res.json(newsCache);
+    }
+    // Ici, tu récupères et traites tous tes flux RSS (existant)
+    try {
+      // ... logique pour fetch et parser tous les flux RSS ...
+      // newsData = { ... }
+      // newsCache = newsData;
+      // newsCacheTimestamp = now;
+      // return res.json(newsData);
+      res.status(501).json({ error: 'Logique à compléter pour fetch les flux RSS.' });
+    } catch (error) {
+      res.status(500).json({ error: 'Erreur serveur.' });
+    }
+  });
   const now = Date.now();
   const cacheKey = channelUsername;
   
