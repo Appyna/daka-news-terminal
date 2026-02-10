@@ -2,6 +2,12 @@ import type { Feed, Article } from '../types'
 
 const API_BASE_URL = 'https://daka-news-backend.onrender.com/api'
 
+interface BackendNewsResponse {
+  success: boolean
+  cached: boolean
+  articles: Array<BackendArticle & { source: string }>
+}
+
 interface BackendArticle {
   id: string
   title: string
@@ -28,6 +34,20 @@ interface BackendSourcesResponse {
     Israel: Array<{ name: string; color: string; free_tier: boolean }>
     France: Array<{ name: string; color: string; free_tier: boolean }>
     Monde: Array<{ name: string; color: string; free_tier: boolean }>
+  }
+}
+
+/**
+ * ✅ NOUVEAU: Récupère tous les articles avec cache backend (3min)
+ */
+export async function getAllNews(): Promise<BackendNewsResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/news`)
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    return await response.json()
+  } catch (error) {
+    console.error('❌ Erreur getAllNews:', error)
+    throw error
   }
 }
 
@@ -94,48 +114,38 @@ function convertBackendArticle(backendArticle: BackendArticle, source: string, c
 
 /**
  * Récupère tous les feeds organisés par catégorie
+ * ✅ Utilise getAllNews() avec cache backend pour éviter surcharge
  */
 export async function fetchAllFeeds(): Promise<Feed[]> {
   try {
-    const sourcesData = await fetchSources()
+    // ✅ Récupérer tous les articles via /api/news (avec cache 3min)
+    const newsData = await getAllNews()
     
-    if (!sourcesData.success) {
-      throw new Error('Échec récupération sources')
+    if (!newsData.success || !newsData.articles) {
+      throw new Error('Échec récupération articles')
     }
     
-    const feeds: Feed[] = []
+    // Grouper les articles par source et pays
+    const feedsMap = new Map<string, Feed>()
     
-    // Traiter chaque catégorie
-    for (const [category, sources] of Object.entries(sourcesData.sources)) {
-      // Récupérer les articles de chaque source
-      await Promise.all(
-        sources.map(async (sourceInfo) => {
-          try {
-            const feedData = await fetchArticlesBySource(sourceInfo.name)
-            
-            if (feedData.success && feedData.articles.length > 0) {
-              // Convertir les articles
-              const articles = feedData.articles.map(article =>
-                convertBackendArticle(article, sourceInfo.name, category)
-              )
-              
-              feeds.push({
-                id: `${category}-${sourceInfo.name}`,
-                name: sourceInfo.name,
-                country: category,
-                source: sourceInfo.name,
-                articles
-              })
-            }
-          } catch (error) {
-            console.error(`Erreur source ${sourceInfo.name}:`, error)
-            // Continue avec les autres sources
-          }
+    for (const article of newsData.articles) {
+      const feedKey = `${article.country}-${article.source}`
+      
+      if (!feedsMap.has(feedKey)) {
+        feedsMap.set(feedKey, {
+          id: feedKey,
+          name: article.source,
+          country: article.country,
+          source: article.source,
+          articles: []
         })
-      )
+      }
+      
+      const feed = feedsMap.get(feedKey)!
+      feed.articles.push(convertBackendArticle(article, article.source, article.country))
     }
     
-    return feeds
+    return Array.from(feedsMap.values())
   } catch (error) {
     console.error('❌ Erreur fetchAllFeeds:', error)
     return []
