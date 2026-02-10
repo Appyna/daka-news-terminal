@@ -10,10 +10,12 @@ import { AuthModal } from './src/components/AuthModal';
 import { PremiumModal } from './src/components/PremiumModal';
 import { SettingsModal } from './src/components/SettingsModal';
 import { apiService } from './src/services/apiService';
+import { iapService } from './src/services/IAPService';
 import { Article, Source } from './src/types';
 import { COLORS, FREE_SOURCES } from './src/constants';
 import { registerForPushNotifications, addNotificationReceivedListener, addNotificationResponseReceivedListener } from './src/services/notificationService';
 import Constants from 'expo-constants';
+import { supabase } from './src/services/supabaseClient';
 
 interface NewsColumnData {
   id: string;
@@ -38,18 +40,57 @@ function MainApp() {
 
   const isPremium = profile?.subscription_tier === 'PREMIUM';
 
-  // 🔔 Enregistrer les notifications au démarrage
+  // � Initialiser In-App Purchase au démarrage
+  useEffect(() => {
+    const initIAP = async () => {
+      try {
+        await iapService.initialize();
+        console.log('✅ IAP initialisé - Produits chargés');
+      } catch (err) {
+        console.error('❌ Erreur init IAP:', err);
+      }
+    };
+
+    initIAP();
+
+    return () => {
+      iapService.disconnect();
+    };
+  }, []);
+
+  // �🔔 Enregistrer les notifications au démarrage (DIRECT SUPABASE)
   useEffect(() => {
     registerForPushNotifications().then(async token => {
       if (token) {
         const deviceId = Constants.installationId || Constants.sessionId || 'unknown-device';
-        console.log('📱 Push token obtenu:', token);
+        console.log('📱 Push token:', token);
         console.log('📱 Device ID:', deviceId);
+        
         try {
-          await apiService.savePushToken(deviceId, token, user?.id);
-          console.log('✅ Token sauvegardé dans le backend (user:', user ? 'connecté' : 'anonyme', ')');
-        } catch (error) {
-          console.error('❌ Erreur save token:', error);
+          // Sauvegarde DIRECTE dans Supabase (ignore les duplicates silencieusement)
+          const { error } = await supabase
+            .from('user_push_tokens')
+            .upsert({
+              device_id: deviceId,
+              push_token: token,
+              user_id: user?.id || null,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'device_id',
+              ignoreDuplicates: false
+            });
+          
+          if (error && error.code !== '23505') {
+            // Ignore duplicate key error (23505), log autres erreurs
+            console.error('❌ Erreur Supabase:', error);
+          } else {
+            console.log('✅ Token sauvegardé dans Supabase');
+          }
+        } catch (error: any) {
+          // Ignore duplicate key, log autres erreurs
+          if (error?.code !== '23505') {
+            console.error('❌ Erreur Supabase:', error);
+          }
         }
       }
     });
@@ -66,12 +107,8 @@ function MainApp() {
 
     // Écouter les notifications cliquées (app fermée/background)
     const responseListener = addNotificationResponseReceivedListener(response => {
-      console.log('👆 Notification cliquée:', response);
-      // TODO: Naviguer vers l'article si l'ID est dans les données
-      const articleId = response.notification.request.content.data?.articleId;
-      if (articleId) {
-        setFocusedNewsId(articleId as string);
-      }
+      console.log('👆 Notification cliquée: l\'app s\'ouvre');
+      // L'app s'ouvre automatiquement, pas besoin de navigation spécifique
     });
 
     return () => {
@@ -126,10 +163,17 @@ function MainApp() {
   const loadArticles = async (sourceName: string) => {
     setLoading(true);
     try {
-      const data = await apiService.getFeeds(sourceName);
-      const sorted = data.sort((a, b) => 
+      // ✅ Utiliser /api/news avec cache backend (ne crash jamais)
+      const allArticles = await apiService.getAllNews();
+      
+      // Filtrer par source localement
+      const filtered = allArticles.filter(a => a.source === sourceName);
+      
+      // Trier par date décroissante
+      const sorted = filtered.sort((a, b) => 
         new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime()
       );
+      
       setArticles(sorted);
     } catch (error) {
       console.error(`Error loading ${sourceName}:`, error);

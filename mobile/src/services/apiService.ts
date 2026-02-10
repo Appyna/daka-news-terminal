@@ -2,41 +2,54 @@ import { API_BASE_URL } from '../constants';
 import { Article, Source } from '../types';
 
 export const apiService = {
-  async getFeeds(sourceName: string): Promise<Article[]> {
-    const response = await fetch(`${API_BASE_URL}/feeds/${sourceName}`);
-    if (!response.ok) throw new Error('Failed to fetch feeds');
+  // ✅ NOUVEAU: Récupérer tous les articles (avec cache backend 3min)
+  async getAllNews(): Promise<Article[]> {
+    const response = await fetch(`${API_BASE_URL}/news`);
+    if (!response.ok) throw new Error('Failed to fetch news');
     const data = await response.json();
     return data.success ? data.articles : [];
+  },
+
+  // Deprecated: Gardé pour compatibilité backward
+  async getFeeds(sourceName: string): Promise<Article[]> {
+    // Utiliser getAllNews et filtrer localement
+    const articles = await this.getAllNews();
+    return articles.filter(a => a.source === sourceName);
   },
 
   async getFeedsByCategory(category: string): Promise<Article[]> {
-    const response = await fetch(`${API_BASE_URL}/feeds/category/${category}`);
-    if (!response.ok) throw new Error('Failed to fetch feeds by category');
-    const data = await response.json();
-    return data.success ? data.articles : [];
+    const articles = await this.getAllNews();
+    return articles.filter(a => a.category === category);
   },
 
   async getSources(): Promise<Source[]> {
-    const response = await fetch(`${API_BASE_URL}/sources`);
-    if (!response.ok) throw new Error('Failed to fetch sources');
-    const data = await response.json();
+    // Extraire les sources uniques des articles
+    const articles = await this.getAllNews();
+    const sourcesMap = new Map<string, Source>();
     
-    // L'API renvoie { success: true, sources: { Israel: [...], France: [...], ... } }
-    // On doit flatten en un tableau de sources
-    if (!data.success || !data.sources) return [];
-    
-    const allSources: Source[] = [];
-    for (const [country, sources] of Object.entries(data.sources) as [string, any[]][]) {
-      allSources.push(...sources);
+    for (const article of articles) {
+      const key = `${article.source}-${article.country}`;
+      if (!sourcesMap.has(key)) {
+        sourcesMap.set(key, {
+          id: key,
+          name: article.source,
+          url: article.link,
+          country: article.country,
+          category: article.category,
+          language: 'multi',
+          enabled: true
+        } as Source);
+      }
     }
-    return allSources;
+    
+    return Array.from(sourcesMap.values());
   },
 
-  async createStripeCheckoutSession(userId: string) {
+  async createStripeCheckoutSession(userId: string, userEmail: string) {
     const response = await fetch(`${API_BASE_URL}/stripe/create-checkout-session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ userId, userEmail }),
     });
     if (!response.ok) throw new Error('Failed to create checkout session');
     return response.json();
