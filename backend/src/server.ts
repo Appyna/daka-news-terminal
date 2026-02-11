@@ -5,6 +5,7 @@ import compression from 'compression';
 import dotenv from 'dotenv';
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
+import rateLimit from 'express-rate-limit';
 
 // Config
 import { initSentry } from './config/sentry';
@@ -23,11 +24,25 @@ import notificationsRouter from './routes/notifications';
 // CRON
 import { startAllCrons } from './cron/collector';
 
-// Cache pour /api/news
+// Cache pour /api/news avec protection contre les race conditions
 import { getArticlesByCategory } from './services/database';
 let newsCache: any[] | null = null;
 let newsCacheTimestamp = 0;
+let isRefreshing = false; // 🔒 Lock pour éviter les double-fetches simultanés
 const NEWS_CACHE_DURATION = 3 * 60 * 1000; // 3 minutes
+
+// Helper function to fetch all articles from database
+async function fetchAllArticles(): Promise<any[]> {
+  const categories = ['France', 'Israel', 'Monde'];
+  let allArticles: any[] = [];
+  for (const cat of categories) {
+    const articles = await getArticlesByCategory(cat);
+    allArticles = allArticles.concat(articles);
+  }
+  // Tri par date décroissante
+  allArticles.sort((a, b) => new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime());
+  return allArticles;
+}
 
 dotenv.config();
 
@@ -80,9 +95,23 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
+// 🛡️ RATE LIMITING : Protection anti-DDoS sur /api/news
+const newsRateLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: (req) => {
+    // Limite plus souple si cache valide (30 req/min), stricte sinon (10 req/min)
+    const now = Date.now();
+    const cacheValid = newsCache !== null && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION;
+    return cacheValid ? 30 : 10;
+  },
+  message: { success: false, error: 'Trop de requêtes, réessayez dans 1 minute' },
+  standardHeaders: true, // Return rate limit info in headers
+  legacyHeaders: false,
+});
+
 // Endpoint /api/news avec cache 3min (SANS filtrage backend)
 // ⚠️ Le filtrage premium se fait côté frontend pour afficher les locks
-app.get('/api/news', async (req: Request, res: Response) => {
+app.get('/api/news', newsRateLimiter, async (req: Request, res: Response) => {
   const userId = req.query.userId as string | undefined;
   const now = Date.now();
   
@@ -92,17 +121,36 @@ app.get('/api/news', async (req: Request, res: Response) => {
     if (newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION) {
       allArticles = newsCache;
     } else {
-      // Récupérer les articles par catégorie (France, Israel, Monde)
-      const categories = ['France', 'Israel', 'Monde'];
-      allArticles = [];
-      for (const cat of categories) {
-        const articles = await getArticlesByCategory(cat);
-        allArticles = allArticles.concat(articles);
+      // 🔒 LOCK : Attendre si un refresh est déjà en cours (race condition fix)
+      if (isRefreshing) {
+        // Attendre max 5s que le refresh en cours termine
+        let waited = 0;
+        while (isRefreshing && waited < 5000) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          waited += 100;
+        }
+        // Si cache est maintenant valide, l'utiliser
+        if (newsCache && (Date.now() - newsCacheTimestamp) < NEWS_CACHE_DURATION) {
+          allArticles = newsCache;
+        } else {
+          // Sinon forcer un refresh (le lock a expiré)
+          isRefreshing = true;
+          allArticles = await fetchAllArticles();
+          newsCache = allArticles;
+          newsCacheTimestamp = Date.now();
+          isRefreshing = false;
+        }
+      } else {
+        // Aucun refresh en cours, on le fait
+        isRefreshing = true;
+        try {
+          allArticles = await fetchAllArticles();
+          newsCache = allArticles;
+          newsCacheTimestamp = Date.now();
+        } finally {
+          isRefreshing = false;
+        }
       }
-      // Tri par date décroissante
-      allArticles.sort((a, b) => new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime());
-      newsCache = allArticles;
-      newsCacheTimestamp = now;
     }
 
     // Vérifier le statut premium de l'utilisateur
