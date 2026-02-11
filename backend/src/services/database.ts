@@ -67,11 +67,12 @@ export async function getArticlesByCategory(category: string): Promise<Article[]
   const sourceIds = sources.map(s => s.id);
 
   // ✅ JOIN avec sources pour ajouter le nom de la source
-  const { data, error } = await supabase
+  // 48h au lieu de 24h pour inclure sources lentes (TASS, RT, etc.)
+  const { data, error} = await supabase
     .from('articles')
     .select('*, sources(name)')
     .in('source_id', sourceIds)
-    .gte('pub_date', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+    .gte('pub_date', new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString())
     .order('pub_date', { ascending: false });
 
   if (error) {
@@ -126,10 +127,10 @@ export async function upsertArticle(article: Omit<Article, 'id' | 'created_at'>)
 }
 
 /**
- * Nettoyer les articles de plus de 24h
+ * Nettoyer les articles de plus de 48h (aligner avec fenêtre de lecture)
  */
 export async function cleanupOldArticles(): Promise<number> {
-  const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const cutoffDate = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
   const { error, count } = await supabase
     .from('articles')

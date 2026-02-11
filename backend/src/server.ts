@@ -8,6 +8,7 @@ import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 // Config
 import { initSentry } from './config/sentry';
+import { supabase } from './config/supabase';
 
 // Routes
 import feedsRouter from './routes/feeds';
@@ -79,10 +80,8 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// Sources gratuites accessibles sans premium
-const FREE_SOURCES = ['Ynet', 'BFM TV', 'BBC World'];
-
-// Endpoint /api/news avec cache 3min + filtrage premium
+// Endpoint /api/news avec cache 3min (SANS filtrage backend)
+// ⚠️ Le filtrage premium se fait côté frontend pour afficher les locks
 app.get('/api/news', async (req: Request, res: Response) => {
   const userId = req.query.userId as string | undefined;
   const now = Date.now();
@@ -117,22 +116,19 @@ app.get('/api/news', async (req: Request, res: Response) => {
           .single();
         isPremium = profile?.subscription_tier === 'PREMIUM';
       } catch (err) {
-        console.error('Error checking premium status:', err);
+        console.error('❌ Error checking premium status:', err);
       }
     }
 
-    // Filtrer les articles selon le statut premium
-    const filteredArticles = isPremium 
-      ? allArticles 
-      : allArticles.filter(article => FREE_SOURCES.includes(article.source));
-
+    // ✅ Retourner TOUS les articles (filtrage côté frontend)
     return res.json({
       success: true,
       cached: newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION,
-      articles: filteredArticles,
+      articles: allArticles,
       isPremium
     });
   } catch (error: any) {
+    console.error('❌ Erreur /api/news:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
