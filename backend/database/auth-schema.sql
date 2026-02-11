@@ -26,13 +26,25 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 CREATE INDEX IF NOT EXISTS profiles_username_idx ON public.profiles(username);
 CREATE INDEX IF NOT EXISTS profiles_premium_idx ON public.profiles(is_premium);
 
--- ═══ 3. TABLE SUBSCRIPTIONS (historique paiements Stripe) ═══
+-- ═══ 3. TABLE SUBSCRIPTIONS (historique paiements multi-plateformes) ═══
 CREATE TABLE IF NOT EXISTS public.subscriptions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  platform TEXT DEFAULT 'stripe', -- 'stripe', 'apple', 'google'
+  
+  -- Stripe
   stripe_customer_id TEXT,
   stripe_subscription_id TEXT UNIQUE,
   stripe_price_id TEXT,
+  
+  -- Apple In-App Purchase
+  apple_transaction_id TEXT,
+  apple_original_transaction_id TEXT,
+  
+  -- Google Play Billing
+  google_purchase_token TEXT,
+  google_order_id TEXT,
+  
   status TEXT NOT NULL DEFAULT 'active', -- active, canceled, past_due, trialing
   current_period_start TIMESTAMP WITH TIME ZONE,
   current_period_end TIMESTAMP WITH TIME ZONE,
@@ -41,9 +53,12 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Index pour lookup Stripe
+-- Index pour lookup
 CREATE INDEX IF NOT EXISTS subscriptions_user_id_idx ON public.subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS subscriptions_platform_idx ON public.subscriptions(platform);
 CREATE INDEX IF NOT EXISTS subscriptions_stripe_sub_idx ON public.subscriptions(stripe_subscription_id);
+CREATE INDEX IF NOT EXISTS subscriptions_apple_tx_idx ON public.subscriptions(apple_transaction_id);
+CREATE INDEX IF NOT EXISTS subscriptions_google_token_idx ON public.subscriptions(google_purchase_token);
 CREATE INDEX IF NOT EXISTS subscriptions_status_idx ON public.subscriptions(status);
 
 -- ═══ 4. TABLE USER_PREFERENCES (préférences sources/pays) ═══
