@@ -50,8 +50,8 @@ router.post('/create-checkout-session', async (req, res) => {
       metadata: {
         userId: userId,
       },
-      success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}?payment=success`,
-      cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}?payment=cancel`,
+      success_url: `${process.env.FRONTEND_URL || process.env.FRONTEND_URL_WEB || 'https://daka-news-terminal.vercel.app'}?payment=success`,
+      cancel_url: `${process.env.FRONTEND_URL || process.env.FRONTEND_URL_WEB || 'https://daka-news-terminal.vercel.app'}?payment=cancel`,
       allow_promotion_codes: true,
       billing_address_collection: 'auto',
     });
