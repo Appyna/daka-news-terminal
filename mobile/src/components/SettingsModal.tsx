@@ -102,7 +102,7 @@ DAKA News conserve temporairement les titres et traductions en base de données 
 
 DAKA News agit exclusivement en qualité d'agrégateur technique de flux RSS publics accessibles sans restriction d'accès, sans contournement de mesures techniques de protection, de paywalls ou de restrictions contractuelles imposées par les éditeurs.
 
-Les flux relatifs à l'actualité israélienne sont collectés via la plateforme tierce Mivzakim (https://mivzakim.net/), tandis que les flux relatifs à l'actualité française et internationale sont collectés via la plateforme tierce Feeder (https://feeder.co/).
+          Les flux relatifs à l'actualité israélienne sont collectés via la plateforme tierce Mivzakim (https://mivzakim.net/), tandis que les flux relatifs à l'actualité française et internationale sont collectés via la plateforme tierce RSS.app (https://rss.app).
 
 Ces plateformes agissent en tant qu'intermédiaires techniques d'agrégation de flux RSS publics, sans lien capitalistique ou contractuel avec DAKA News.
 
@@ -420,7 +420,7 @@ DAKA News ne publie **aucun article complet** et ne modifie pas le contenu édit
 
 DAKA News agit exclusivement en qualité d'agrégateur technique de flux RSS publics accessibles sans restriction d'accès, sans contournement de mesures techniques de protection, de paywalls ou de restrictions contractuelles imposées par les éditeurs.
 
-Les flux relatifs à l'actualité israélienne sont collectés via la plateforme tierce Mivzakim (https://mivzakim.net/), tandis que les flux relatifs à l'actualité française et internationale sont collectés via la plateforme tierce Feeder (https://feeder.co/).
+          Les flux relatifs à l'actualité israélienne sont collectés via la plateforme tierce Mivzakim (https://mivzakim.net/), tandis que les flux relatifs à l'actualité française et internationale sont collectés via la plateforme tierce RSS.app (https://rss.app).
 
 Ces plateformes agissent en tant qu'intermédiaires techniques d'agrégation de flux RSS publics, sans lien capitalistique ou contractuel avec DAKA News.
 
