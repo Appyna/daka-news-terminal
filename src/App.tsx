@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Logo from './components/Logo';
 import Sidebar from './components/Sidebar';
 import NewsColumn from './components/NewsColumn';
-import Footer from './components/Footer';
 import TopBar from '../components/TopBar';
 import { PremiumModal } from './components/PremiumModal';
 import { useAuth } from './contexts/AuthContext';
@@ -13,7 +12,7 @@ import { getAllNews } from './services/apiService';
 const API_BASE_URL = 'https://daka-news-backend.onrender.com/api';
 
 const App: React.FC = () => {
-  const { isPremium } = useAuth();
+  const { isPremium, refreshProfile } = useAuth();
   const [allColumns, setAllColumns] = useState<NewsColumnType[]>([]);
   const [focusedNewsId, setFocusedNewsId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -29,14 +28,17 @@ const App: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
+      console.log('💳 Retour paiement détecté, rechargement du profil...');
       setShowPaymentSuccess(true);
+      // Recharger le profil pour obtenir le statut Premium
+      refreshProfile();
       // Nettoyer l'URL après 5 secondes
       setTimeout(() => {
         window.history.replaceState({}, document.title, window.location.pathname);
         setShowPaymentSuccess(false);
       }, 5000);
     }
-  }, []);
+  }, [refreshProfile]);
 
   // Détecter le retour du magic link de réinitialisation
   useEffect(() => {
@@ -219,7 +221,6 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <Footer searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       <PremiumModal 
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}

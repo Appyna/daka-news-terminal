@@ -16,6 +16,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { AuthModal } from './AuthModal';
 import { apiService } from '../services/apiService';
 import { iapService } from '../services/IAPService';
+import { supabase } from '../services/supabaseClient';
 import Svg, { Path, Circle } from 'react-native-svg';
 
 interface PremiumModalProps {
@@ -30,8 +31,41 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
   const [showTransition, setShowTransition] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [loading, setLoading] = useState(false);
-  const [localizedPrice, setLocalizedPrice] = useState('1,99 €'); // Prix par défaut (fallback)
+  const [localizedPrice, setLocalizedPrice] = useState('1,99 €');
   const [loadingPrice, setLoadingPrice] = useState(true);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [loadingSub, setLoadingSub] = useState(false);
+
+  const isPremium = profile?.subscription_tier === 'PREMIUM';
+
+  // Charger l'abonnement si Premium
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      if (!user || !isPremium) return;
+      
+      setLoadingSub(true);
+      try {
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single();
+        
+        if (!error && data) {
+          setSubscription(data);
+        }
+      } catch (err) {
+        console.error('Erreur chargement abonnement:', err);
+      } finally {
+        setLoadingSub(false);
+      }
+    };
+
+    if (visible) {
+      fetchSubscription();
+    }
+  }, [user, isPremium, visible]);
 
   // 🎯 Récupérer le prix localisé au chargement du modal
   useEffect(() => {
@@ -119,6 +153,11 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
     return <AuthModal visible={true} onClose={() => setShowAuth(false)} redirectToPremium={true} initialTab="signup" />;
   }
 
+  // Si déjà Premium, ne rien afficher (gestion via TopBar uniquement)
+  if (isPremium && user) {
+    return null;
+  }
+
   if (showTransition) {
     return (
       <Modal visible={visible} transparent animationType="fade">
@@ -173,7 +212,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
             {/* Header */}
             <View style={styles.header}>
               <Text style={styles.headerTitle}>
-                Toute l'actualité en Israël et dans le monde, en français et en temps réel
+                Accédez à toutes les actualités mondiales en temps réel en Français
               </Text>
             </View>
 
@@ -181,7 +220,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
             <View style={styles.features}>
               <View style={styles.featureItem}>
                 <View style={styles.bullet} />
-                <Text style={styles.featureText}>20+ sources en Israël, en France et dans le monde</Text>
+                <Text style={styles.featureText}>20 sources en Israël, en France et dans le monde</Text>
               </View>
               <View style={styles.featureItem}>
                 <View style={styles.bullet} />
@@ -203,8 +242,11 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
                 <ActivityIndicator color={COLORS.accentYellow1} size="small" />
               ) : (
                 <>
-                  <Text style={styles.price}>{localizedPrice}</Text>
-                  <Text style={styles.priceSubtext}>/mois</Text>
+                  <View style={styles.priceRow}>
+                    <Text style={styles.price}>{localizedPrice}</Text>
+                    <Text style={styles.priceSubtext}> /mois</Text>
+                  </View>
+                  <Text style={styles.priceIsrael}>(7,49 ₪ en Israël)</Text>
                 </>
               )}
             </View>
@@ -212,8 +254,21 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
             {/* CTA et Retour avec vrais boutons */}
             <View style={styles.actionsRow}>
               {user ? (
-                <Pressable style={styles.ctaButton} onPress={redirectToCheckout}>
-                  <Text style={styles.ctaText}>Accéder en illimité</Text>
+                <Pressable 
+                  style={[styles.ctaButton, loading && styles.ctaButtonLoading]} 
+                  onPress={redirectToCheckout}
+                  disabled={loading}
+                >
+                  <View style={styles.ctaContent}>
+                    {loading && (
+                      <ActivityIndicator 
+                        color={COLORS.dark1} 
+                        size="small" 
+                        style={styles.ctaSpinner}
+                      />
+                    )}
+                    <Text style={styles.ctaText}>Accéder en illimité</Text>
+                  </View>
                 </Pressable>
               ) : (
                 <Pressable style={styles.ctaButton} onPress={() => setShowAuth(true)}>
@@ -292,7 +347,7 @@ const styles = StyleSheet.create({
   features: {
     paddingHorizontal: 28,
     paddingVertical: 16,
-    paddingTop: 20,
+    paddingTop: 28,
     gap: 14,
   },
   featureItem: {
@@ -319,15 +374,25 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   price: {
-    fontSize: 44,
+    fontSize: 40,
     fontWeight: '700',
     color: COLORS.accentYellow1,
     letterSpacing: -1,
   },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+  },
   priceSubtext: {
     fontSize: 15,
     color: 'rgba(255, 255, 255, 0.6)',
-    marginTop: -2,
+    marginLeft: 4,
+  },
+  priceIsrael: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.65)',
+    marginTop: 8,
   },
   actionsRow: {
     paddingHorizontal: 28,
@@ -344,6 +409,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+  },
+  ctaButtonLoading: {
+    opacity: 0.8,
+  },
+  ctaContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaSpinner: {
+    marginRight: 8,
   },
   ctaButtonDisabled: {
     opacity: 0.6,

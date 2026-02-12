@@ -44,9 +44,14 @@ export interface UserPreferences {
 export interface Subscription {
   id: string;
   user_id: string;
+  platform: 'stripe' | 'apple' | 'google';
   stripe_customer_id?: string;
   stripe_subscription_id?: string;
   stripe_price_id?: string;
+  apple_transaction_id?: string;
+  apple_original_transaction_id?: string;
+  google_purchase_token?: string;
+  google_order_id?: string;
   status: 'active' | 'canceled' | 'past_due' | 'trialing';
   current_period_start?: string;
   current_period_end?: string;

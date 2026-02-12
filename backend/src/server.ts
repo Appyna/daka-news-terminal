@@ -159,10 +159,10 @@ app.get('/api/news', newsRateLimiter, async (req: Request, res: Response) => {
       try {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('subscription_tier')
+          .select('is_premium, premium_until')
           .eq('id', userId)
           .single();
-        isPremium = profile?.subscription_tier === 'PREMIUM';
+        isPremium = profile?.is_premium && (!profile.premium_until || new Date(profile.premium_until) > new Date());
       } catch (err) {
         console.error('❌ Error checking premium status:', err);
       }

@@ -65,8 +65,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
       >
         <div className="flex items-center justify-between p-4 border-b border-white/5">
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-white/90">Sources</h2>
-            <p className="text-[10px] text-white/40 mt-0.5">Sélectionner un flux</p>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-white/90">Live</span>
+            </div>
+            <p className="text-[10px] text-white/40 mt-0.5">Sélectionner une source d'infos</p>
           </div>
           <button
             onClick={onClose}
@@ -140,12 +143,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
         </nav>
         
         <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-2 text-[10px]">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="font-semibold text-white/50 uppercase tracking-wider">Live</span>
-            <span className="text-white/30">•</span>
-            <span className="text-white/30 font-mono">{Object.values(sources).flat().length} sources</span>
-          </div>
+          <p className="text-[10px] text-white/30 leading-relaxed">
+            Actualités traduites par intelligence artificielle.<br />
+            Des erreurs peuvent survenir.
+          </p>
         </div>
       </div>
     </>

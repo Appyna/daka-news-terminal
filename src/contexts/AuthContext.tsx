@@ -14,6 +14,7 @@ interface AuthContextType {
   resendOtp: (email: string) => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
+  refreshProfile: () => Promise<void>;
   isPremium: boolean;
   showPasswordResetModal: boolean;
   clearPasswordResetModal: () => void;
@@ -270,6 +271,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   }
 
+  // Recharger le profil manuellement (après paiement par exemple)
+  async function refreshProfile() {
+    if (user?.id) {
+      console.log('🔄 Rechargement du profil après mise à jour...');
+      await loadProfile(user.id);
+      console.log('✅ Profil rechargé:', profile?.is_premium ? 'Premium' : 'Free');
+    }
+  }
+
   const value = {
     user,
     profile,
@@ -282,6 +292,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     resendOtp,
     resetPassword,
     updatePassword,
+    refreshProfile,
     isPremium,
     showPasswordResetModal,
     clearPasswordResetModal,

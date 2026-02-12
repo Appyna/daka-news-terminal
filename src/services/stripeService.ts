@@ -33,7 +33,7 @@ export async function createCheckoutSession(
   params: CheckoutSessionParams
 ): Promise<CheckoutSessionResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/stripe/create-checkout-session`, {
+    const response = await fetch(`${API_BASE_URL}/stripe/create-checkout-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ export async function createPortalSession(
   params: PortalSessionParams
 ): Promise<PortalSessionResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/stripe/create-portal-session`, {
+    const response = await fetch(`${API_BASE_URL}/stripe/create-portal-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

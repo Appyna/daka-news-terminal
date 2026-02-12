@@ -30,7 +30,7 @@ const TopBar: React.FC<TopBarProps> = ({
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const isPremiumUser = profile?.subscription_tier === 'PREMIUM';
+  const isPremiumUser = profile?.is_premium && (!profile.premium_until || new Date(profile.premium_until) > new Date());
 
   // Ouvrir le modal automatiquement quand PASSWORD_RECOVERY est détecté
   useEffect(() => {
@@ -123,25 +123,45 @@ const TopBar: React.FC<TopBarProps> = ({
                         onClick={async () => {
                           setShowUserMenu(false);
                           try {
-                            console.log('🔍 Opening portal for user:', user?.id);
-                            const url = 'https://daka-news-backend.onrender.com/api/stripe/create-portal-session';
-                            console.log('🔍 URL:', url);
-                            // Récupérer le customer_id depuis la DB
-                            const response = await fetch(url, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ userId: user?.id }),
-                            });
-                            console.log('🔍 Response status:', response.status);
-                            const data = await response.json();
-                            console.log('🔍 Response data:', data);
-                            if (data.success && data.url) {
-                              window.location.href = data.url;
-                            } else {
-                              alert(`Erreur: ${data.error || 'Impossible d\'ouvrir le portail'}`);
+                            console.log('🔍 Récupération plateforme abonnement pour:', user?.id);
+                            
+                            // Récupérer la plateforme d'abonnement depuis Supabase
+                            const { createClient } = await import('@supabase/supabase-js');
+                            const supabase = createClient(
+                              import.meta.env.VITE_SUPABASE_URL,
+                              import.meta.env.VITE_SUPABASE_ANON_KEY
+                            );
+                            
+                            const { data: sub } = await supabase
+                              .from('subscriptions')
+                              .select('platform')
+                              .eq('user_id', user?.id)
+                              .eq('status', 'active')
+                              .single();
+                            
+                            const platform = sub?.platform || 'stripe';
+                            console.log('🔍 Plateforme détectée:', platform);
+                            
+                            if (platform === 'stripe') {
+                              // Stripe Portal
+                              const url = 'https://daka-news-backend.onrender.com/api/stripe/create-portal-session';
+                              const response = await fetch(url, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId: user?.id }),
+                              });
+                              const data = await response.json();
+                              if (data.success && data.url) {
+                                window.location.href = data.url;
+                              } else {
+                                alert(`Erreur: ${data.error || 'Impossible d\'ouvrir le portail'}`);
+                              }
+                            } else if (platform === 'apple' || platform === 'google') {
+                              // Abonnement via store mobile - Message
+                              alert('Abonnement Premium depuis votre smartphone. Toute gestion ou désabonnement s\'effectue depuis les réglages de votre smartphone.');
                             }
                           } catch (err) {
-                            console.error('Erreur ouverture portail:', err);
+                            console.error('Erreur gestion abonnement:', err);
                             alert('Impossible d\'ouvrir le portail de gestion');
                           }
                         }}

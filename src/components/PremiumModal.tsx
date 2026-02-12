@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { redirectToCheckout } from '../services/stripeService';
 import { AuthModal } from './AuthModal';
 import { COLORS } from '../constants';
+import { supabase, Subscription } from '../lib/supabase';
 
 interface PremiumModalProps {
   isOpen: boolean;
@@ -10,13 +11,44 @@ interface PremiumModalProps {
 }
 
 export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
-  const { user } = useAuth();
+  const { user, profile, isPremium } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [showTransition, setShowTransition] = useState(false);
   const [countdown, setCountdown] = useState(2);
   const [wasInSignupFlow, setWasInSignupFlow] = useState(false);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [loadingSub, setLoadingSub] = useState(false);
+
+  // Charger l'abonnement si l'utilisateur est Premium
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      if (!user || !isPremium) return;
+      
+      setLoadingSub(true);
+      try {
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single();
+        
+        if (!error && data) {
+          setSubscription(data as Subscription);
+        }
+      } catch (err) {
+        console.error('Erreur chargement abonnement:', err);
+      } finally {
+        setLoadingSub(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchSubscription();
+    }
+  }, [user, isPremium, isOpen]);
 
   // Détecter si l'user vient de se connecter depuis le flux premium
   useEffect(() => {
@@ -160,6 +192,11 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
     );
   }
 
+  // Si utilisateur déjà Premium, ne rien afficher (gestion via TopBar uniquement)
+  if (isPremium && user) {
+    return null;
+  }
+
   // Afficher le PremiumModal par défaut avec les bénéfices
   return (
     <>
@@ -193,14 +230,14 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
             </h2>
 
             {/* Liste des avantages */}
-            <div className="mt-6 space-y-3">
+            <div className="mt-8 space-y-3">
               <div className="flex items-start gap-3 text-white/80">
                 <div 
                   className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
                   style={{ backgroundColor: COLORS.accentYellow1 }}
                 />
                 <p className="text-sm leading-relaxed">
-                  20+ sources en Israël, en France et dans le monde
+                  20 sources en Israël, en France et dans le monde
                 </p>
               </div>
 
@@ -210,7 +247,7 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
                   style={{ backgroundColor: COLORS.accentYellow1 }}
                 />
                 <p className="text-sm leading-relaxed">
-                  Flux continus 24h/24, 7j/7
+                  Infos en continu 24h/24 • 7j/7 en français
                 </p>
               </div>
 
@@ -220,7 +257,7 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
                   style={{ backgroundColor: COLORS.accentYellow1 }}
                 />
                 <p className="text-sm leading-relaxed">
-                  Traduit automatiquement en français
+                  Notifications pour rester alerté
                 </p>
               </div>
 
@@ -237,13 +274,16 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
 
             {/* Prix */}
             <div className="mt-8 text-center">
-              <p 
-                className="text-4xl font-bold"
-                style={{ color: COLORS.accentYellow1 }}
-              >
-                1,99€
-                <span className="text-lg text-white/50">/mois</span>
+              <p className="mb-2">
+                <span 
+                  className="text-4xl font-bold"
+                  style={{ color: COLORS.accentYellow1 }}
+                >
+                  1,99 €
+                </span>
+                <span className="text-base text-white/60 ml-1">/mois</span>
               </p>
+              <p className="text-sm text-white/70">(7,49 ₪ en Israël)</p>
             </div>
 
             {/* Message d'erreur */}
@@ -258,13 +298,19 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
               <button
                 onClick={handleSubscribe}
                 disabled={loading}
-                className="w-full py-3 rounded-lg font-semibold text-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-lg font-semibold text-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 style={{
                   backgroundColor: COLORS.accentYellow1,
                   color: COLORS.dark1
                 }}
               >
-                {loading ? 'Redirection...' : 'Accéder en illimité'}
+                {loading && (
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                Accéder en illimité
               </button>
 
               <button

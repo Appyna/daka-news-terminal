@@ -32,10 +32,15 @@ const Footer: React.FC<FooterProps> = ({
 
       <div className="flex-1" />
 
-      {/* Live indicator */}
-      <div className="flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Live</span>
+      {/* AI Disclaimer */}
+      <div className="flex items-center gap-4">
+        <span className="text-[9px] text-white/40">Actualités traduites par intelligence artificielle. Des erreurs peuvent survenir.</span>
+        
+        {/* Live indicator */}
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Live</span>
+        </div>
       </div>
     </footer>
   );

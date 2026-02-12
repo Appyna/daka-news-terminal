@@ -193,10 +193,27 @@ function MainApp() {
     if (!user) return;
 
     try {
-      const { url } = await apiService.createStripePortalSession(user.id);
-      Linking.openURL(url);
+      // Récupérer la plateforme d'abonnement
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('platform')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
+
+      const platform = sub?.platform || 'stripe';
+
+      if (platform === 'stripe') {
+        const { url } = await apiService.createStripePortalSession(user.id);
+        Linking.openURL(url);
+      } else if (platform === 'apple') {
+        Linking.openURL('https://apps.apple.com/account/subscriptions');
+      } else if (platform === 'google') {
+        Linking.openURL('https://play.google.com/store/account/subscriptions');
+      }
     } catch (error) {
-      console.error('Error creating portal:', error);
+      console.error('Error managing subscription:', error);
+      Alert.alert('Erreur', 'Impossible d\'ouvrir la page de gestion d\'abonnement');
     }
   };
 

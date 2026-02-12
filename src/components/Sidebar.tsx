@@ -62,8 +62,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
         <div className="flex items-center justify-between p-4 border-b border-white/5">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-white/90">Live</h2>
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-white/90">Live</h2>
             </div>
             <p className="text-[10px] text-white/40">Sélectionner une source d'infos</p>
           </div>
