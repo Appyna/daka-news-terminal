@@ -67,12 +67,12 @@ export async function getArticlesByCategory(category: string): Promise<Article[]
   const sourceIds = sources.map(s => s.id);
 
   // ✅ JOIN avec sources pour ajouter le nom de la source
-  // 48h au lieu de 24h pour inclure sources lentes (TASS, RT, etc.)
+  // Filtre 24h pour afficher uniquement les articles récents
   const { data, error} = await supabase
     .from('articles')
     .select('*, sources(name)')
     .in('source_id', sourceIds)
-    .gte('pub_date', new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString())
+    .gte('pub_date', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
     .order('pub_date', { ascending: false });
 
   if (error) {
