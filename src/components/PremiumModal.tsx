@@ -283,7 +283,7 @@ export function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
                 </span>
                 <span className="text-base text-white/60 ml-1">/mois</span>
               </p>
-              <p className="text-sm text-white/70">(7,49 ₪ en Israël)</p>
+              <p className="text-sm text-white/70">(7,99 ₪ en Israël)</p>
             </div>
 
             {/* Message d'erreur */}

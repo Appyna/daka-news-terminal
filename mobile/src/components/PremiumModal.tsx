@@ -80,7 +80,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
       const products = await iapService.getProducts();
       
       if (products.length > 0) {
-        // products[0].price contient déjà le prix formaté localement (ex: "1,99 €" ou "7,49 ₪")
+        // products[0].price contient déjà le prix formaté localement (ex: "1,99 €" ou "7,99 ₪")
         setLocalizedPrice(products[0].price);
         console.log('✅ Prix localisé récupéré:', products[0].price);
       }
@@ -246,7 +246,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
                     <Text style={styles.price}>{localizedPrice}</Text>
                     <Text style={styles.priceSubtext}> /mois</Text>
                   </View>
-                  <Text style={styles.priceIsrael}>(7,49 ₪ en Israël)</Text>
+                  <Text style={styles.priceIsrael}>(7,99 ₪ en Israël)</Text>
                 </>
               )}
             </View>

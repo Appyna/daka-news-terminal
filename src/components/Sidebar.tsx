@@ -18,7 +18,7 @@ const fluxByCountry = {
     "Ynet", "Arutz 7", "Arutz 14", "Israel Hayom", "Walla"
   ],
   "France": [
-    "BFM TV", "France Info", "Le Monde"
+    "BFM TV", "France Info", "Dépêches AFP - Mediapart", "France Bleu", "Le Monde"
   ],
   "Monde": [
     "BBC World", "Reuters", "ANADOLU (Agence de presse turque)", "Bloomberg", "FOXNews", "New York Times", "POLITICO", "RT - Russie", "TASS (Agence de presse russe)"
