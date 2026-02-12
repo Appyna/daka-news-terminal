@@ -58,18 +58,28 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
 
         console.log('✅ Paiement réussi pour user:', userId);
 
-        // Activer le premium (1 mois)
-        const { error } = await supabase.rpc('activate_premium', {
-          user_id_param: userId,
-          months: 1,
-        });
+        // Récupérer la subscription Stripe pour avoir les vraies dates
+        const stripeSubscription = await stripe.subscriptions.retrieve(subscriptionId) as Stripe.Subscription;
+        // @ts-ignore - current_period_end/start existent dans l'API Stripe
+        const periodEnd = new Date((stripeSubscription.current_period_end as number) * 1000);
+        // @ts-ignore
+        const periodStart = new Date((stripeSubscription.current_period_start as number) * 1000);
 
-        if (error) {
-          console.error('❌ Erreur activation premium:', error);
+        // Mettre à jour le profil avec la vraie date de fin
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            is_premium: true,
+            premium_until: periodEnd.toISOString(),
+          })
+          .eq('id', userId);
+
+        if (profileError) {
+          console.error('❌ Erreur mise à jour profil:', profileError);
         } else {
-          console.log('✅ Premium activé pour user:', userId);
+          console.log('✅ Premium activé pour user:', userId, 'jusqu\'au', periodEnd.toISOString());
 
-          // Créer/mettre à jour la subscription dans la table
+          // Créer/mettre à jour la subscription avec les vraies dates
           const { error: subError } = await supabase
             .from('subscriptions')
             .upsert({
@@ -78,8 +88,8 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
               stripe_customer_id: customerId,
               stripe_subscription_id: subscriptionId,
               status: 'active',
-              current_period_start: new Date().toISOString(),
-              current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              current_period_start: periodStart.toISOString(),
+              current_period_end: periodEnd.toISOString(),
             });
 
           if (subError) {
@@ -105,19 +115,29 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
         if (sub) {
           if (subscription.status === 'active') {
             console.log('✅ Abonnement renouvelé pour user:', sub.user_id);
-            // Renouveler le premium (1 mois)
-            await supabase.rpc('activate_premium', {
-              user_id_param: sub.user_id,
-              months: 1,
-            });
+            
+            // Utiliser les vraies dates de Stripe
+            // @ts-ignore - current_period_end/start existent dans l'API Stripe
+            const periodEnd = new Date((subscription.current_period_end as number) * 1000);
+            // @ts-ignore
+            const periodStart = new Date((subscription.current_period_start as number) * 1000);
+            
+            // Mettre à jour premium_until avec la vraie date de fin de période
+            await supabase
+              .from('profiles')
+              .update({
+                is_premium: true,
+                premium_until: periodEnd.toISOString(),
+              })
+              .eq('id', sub.user_id);
 
-            // Mettre à jour le statut
+            // Mettre à jour subscription avec les vraies dates de Stripe
             await supabase
               .from('subscriptions')
               .update({
                 status: 'active',
-                current_period_start: new Date().toISOString(),
-                current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                current_period_start: periodStart.toISOString(),
+                current_period_end: periodEnd.toISOString(),
               })
               .eq('stripe_customer_id', customerId);
           } else if (subscription.status === 'canceled' || subscription.status === 'unpaid') {

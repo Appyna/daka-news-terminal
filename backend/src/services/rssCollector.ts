@@ -126,7 +126,7 @@ export async function collectSourceArticles(source: Source): Promise<number> {
       continue; // Déjà traité dans cette session
     }
 
-    const existsInDB = await articleExists(source.id, link);
+    const existsInDB = await articleExists(String(source.id), link);
     if (existsInDB) {
       skippedDuplicates++;
       addToCache(link); // Ajouter au cache mémoire aussi
