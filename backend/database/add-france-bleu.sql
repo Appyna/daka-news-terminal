@@ -2,26 +2,23 @@
 -- AJOUTER FRANCE BLEU dans la catégorie France
 -- ═══════════════════════════════════════════════════════════════════════
 -- À exécuter dans Supabase SQL Editor
--- France Bleu sera placé entre "Dépêches AFP - Mediapart" et "Le Monde"
+-- France Bleu sera placé entre les sources existantes
 
--- 1. Décaler "Le Monde" et toutes les sources suivantes de +1
-UPDATE rss_sources
-SET display_order = display_order + 1
-WHERE country = 'France'
-  AND display_order >= (
-    SELECT display_order FROM rss_sources WHERE name = 'Le Monde' AND country = 'France'
-  );
+-- Vérifier d'abord les sources France existantes
+SELECT id, name, category, free_tier, skip_translation
+FROM sources
+WHERE category = 'France'
+ORDER BY id;
 
--- 2. Insérer France Bleu
-INSERT INTO rss_sources (
+-- Insérer France Bleu
+INSERT INTO sources (
   name,
-  url,
-  country,
+  rss_url,
+  category,
   color,
   free_tier,
-  requires_translation,
-  display_order,
-  is_active
+  skip_translation,
+  active
 )
 VALUES (
   'France Bleu',
@@ -29,28 +26,22 @@ VALUES (
   'France',
   '#0055A4',  -- Bleu France
   false,      -- Source Premium
-  false,      -- Pas besoin de traduction
-  (SELECT display_order FROM rss_sources WHERE name = 'Le Monde' AND country = 'France') - 1,
+  true,       -- Pas besoin de traduction (déjà en français)
   true
 );
 
--- 3. Vérification : Afficher l'ordre des sources France
+-- Vérification finale : Afficher toutes les sources France
 SELECT 
-  display_order,
+  id,
   name,
-  country,
+  category,
   free_tier,
-  requires_translation,
-  is_active
-FROM rss_sources
-WHERE country = 'France'
-ORDER BY display_order;
+  skip_translation,
+  active
+FROM sources
+WHERE category = 'France'
+ORDER BY id;
 
 -- ═══════════════════════════════════════════════════════════════════════
--- ✅ Résultat attendu :
---   1. BFM TV
---   2. France Info
---   3. Dépêches AFP - Mediapart
---   4. France Bleu  ← NOUVEAU
---   5. Le Monde
+-- ✅ France Bleu ajouté avec succès
 -- ═══════════════════════════════════════════════════════════════════════
