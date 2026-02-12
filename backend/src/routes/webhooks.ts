@@ -59,11 +59,15 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
         console.log('✅ Paiement réussi pour user:', userId);
 
         // Récupérer la subscription Stripe pour avoir les vraies dates
-        const stripeSubscription = await stripe.subscriptions.retrieve(subscriptionId) as Stripe.Subscription;
-        // @ts-ignore - current_period_end/start existent dans l'API Stripe
-        const periodEnd = new Date((stripeSubscription.current_period_end as number) * 1000);
-        // @ts-ignore
-        const periodStart = new Date((stripeSubscription.current_period_start as number) * 1000);
+        const stripeSubscription: any = await stripe.subscriptions.retrieve(subscriptionId);
+        
+        if (!stripeSubscription.current_period_end || !stripeSubscription.current_period_start) {
+          console.error('❌ Dates manquantes dans subscription:', stripeSubscription);
+          break;
+        }
+        
+        const periodEnd = new Date(stripeSubscription.current_period_end * 1000);
+        const periodStart = new Date(stripeSubscription.current_period_start * 1000);
 
         // Mettre à jour le profil avec la vraie date de fin
         const { error: profileError } = await supabase
@@ -102,7 +106,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
       }
 
       case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription: any = event.data.object;
         const customerId = subscription.customer as string;
 
         // Récupérer le user_id depuis subscriptions
@@ -116,11 +120,14 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
           if (subscription.status === 'active') {
             console.log('✅ Abonnement renouvelé pour user:', sub.user_id);
             
+            if (!subscription.current_period_end || !subscription.current_period_start) {
+              console.error('❌ Dates manquantes dans subscription:', subscription.id);
+              break;
+            }
+            
             // Utiliser les vraies dates de Stripe
-            // @ts-ignore - current_period_end/start existent dans l'API Stripe
-            const periodEnd = new Date((subscription.current_period_end as number) * 1000);
-            // @ts-ignore
-            const periodStart = new Date((subscription.current_period_start as number) * 1000);
+            const periodEnd = new Date(subscription.current_period_end * 1000);
+            const periodStart = new Date(subscription.current_period_start * 1000);
             
             // Mettre à jour premium_until avec la vraie date de fin de période
             await supabase
