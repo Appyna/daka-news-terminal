@@ -1,7 +1,7 @@
 import type { Feed, Article } from '../types'
 import { supabase } from '../lib/supabase'
 
-const API_BASE_URL = 'https://api.dakanews
+const API_BASE_URL = 'https://api.dakanews.com/api'
 
 interface BackendNewsResponse {
   success: boolean
