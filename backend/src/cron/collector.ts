@@ -7,7 +7,7 @@ import * as Sentry from '@sentry/node';
  * Job de collecte RSS (toutes les 3 minutes par défaut)
  */
 export function startRSSCollectionCron() {
-  const intervalSeconds = parseInt(process.env.RSS_FETCH_INTERVAL_SECONDS || '180');
+  const intervalSeconds = parseInt(process.env.RSS_FETCH_INTERVAL_SECONDS || '120'); // 2 minutes par défaut
   const cronExpression = `*/${Math.floor(intervalSeconds / 60)} * * * *`;
 
   console.log(`⏰ CRON RSS: Toutes les ${intervalSeconds}s (${cronExpression})`);

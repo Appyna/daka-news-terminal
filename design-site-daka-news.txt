@@ -1,0 +1,77 @@
+DESIGN SITE DAKA NEWS — VERROUILLÉ
+
+RÈGLE ABSOLUE
+- Aucun changement visuel ne doit être effectué sans autorisation explicite du propriétaire.
+
+CHECKLIST VISUELLE (RÉFÉRENCE)
+1) Identité visuelle
+- Thème global sombre, fond principal bleu nuit/violet sombre.
+- Accent jaune or (couleur des highlights, titres de sections et icônes).
+- Typographies fines, uppercase pour les titres de sections.
+- Interlignage confortable, textes secondaires en gris clair.
+- Style général: sobre, élégant, minimaliste, sans surcharge.
+- Ombres légères et contours subtils.
+
+2) Mise en page principale
+- TopBar fixe avec bouton menu à gauche, logo centré, zone profil à droite.
+- Layout en colonnes par pays/source avec cartes d’articles.
+- Fond général uniforme sombre sans motif visible.
+- Marges régulières, alignements stricts.
+- Scroll vertical discret, pas d’éléments collants inattendus.
+
+3) Menu sources (Sidebar)
+- Menu latéral gauche, largeur ~300px, fond sombre, bordure droite légère.
+- Overlay sombre translucide derrière le menu.
+- En-tête “LIVE” en uppercase avec point vert animé.
+- Texte “Sélectionner une source d’infos” en gris clair.
+- Sections pays en jaune or, uppercase, espacement généreux.
+- Liste des sources: point indicateur à gauche.
+- Source active: surlignage jaune + bordure/trait latéral.
+- Sources premium verrouillées: icône cadenas jaune à droite.
+- Espacement vertical fin entre sources.
+- Footer avec texte IA (2 lignes), gris clair.
+- Icône écrou à droite du texte, taille petite, même ligne.
+- Clic écrou ouvre modal légal.
+
+4) Modals
+- Modals sur fond assombri (overlay) + panneau arrondi sombre.
+- En-tête modal avec ligne/gradient jaune.
+- Bouton fermer en haut à droite.
+- Liens en liste verticale avec icônes légères.
+- Modal légal : CGU/CGV, Politique de Confidentialité, Mentions légales, Contact.
+- Bouton “Contactez-nous” en bas (mailto).
+
+5) Couleurs et éléments récurrents
+- Couleur accent : jaune or pour le focus/actif/important.
+- Gris clair pour textes secondaires.
+- Bordures fines et discrètes (blanc/5%).
+- Hover discret (éclaircissement léger).
+- Icônes en style outline, fins traits.
+- Aucune animation excessive.
+
+6) Cartes d’articles
+- Cartes alignées en colonne.
+- Titre en blanc/jaune selon priorité.
+- Sous-titre/traduction en gris clair.
+- Heure en gris discret.
+- Bordure/ombre légère.
+- Indicateur priorité si présent.
+
+7) Boutons et états
+- Boutons premium en jaune.
+- Boutons secondaires en gris discret.
+- États actifs: jaune or.
+- États verrouillés: cadenas jaune.
+
+8) Typographies
+- Titres: uppercase, espacements de lettres.
+- Corps: sans-serif moderne.
+- Texte légal: petit, lisible.
+
+9) Mobile / responsive
+- Menu latéral occupe la majorité de la largeur.
+- Textes réduits mais lisibles.
+- Icônes claires et accessibles.
+
+RAPPEL
+- Toute modification visuelle est interdite sans validation explicite.

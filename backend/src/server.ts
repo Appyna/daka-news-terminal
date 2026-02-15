@@ -29,7 +29,7 @@ import { getArticlesByCategory } from './services/database';
 let newsCache: any[] | null = null;
 let newsCacheTimestamp = 0;
 let isRefreshing = false; // 🔒 Lock pour éviter les double-fetches simultanés
-const NEWS_CACHE_DURATION = 3 * 60 * 1000; // 3 minutes
+const NEWS_CACHE_DURATION = 1 * 60 * 1000; // 1 minute (news plus fraîches)
 
 // Helper function to fetch all articles from database
 async function fetchAllArticles(): Promise<any[]> {
@@ -55,6 +55,9 @@ const PORT = process.env.PORT || 4000;
 // ============================================
 // MIDDLEWARES
 // ============================================
+
+// ✅ Trust proxy (Render, Vercel, etc.) pour express-rate-limit
+app.set('trust proxy', 1);
 
 // Sécurité
 app.use(helmet());

@@ -54,7 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   useEffect(() => {
     const loadSources = async () => {
       try {
-        const response = await fetch('https://daka-news-backend.onrender.com/api/sources');
+        const response = await fetch('https://api.dakanews.com/api/sources');
         const data = await response.json();
         if (data.success) {
           setSources(data.sources);

@@ -1,0 +1,16 @@
+# DAKA News - Robots.txt
+# Autoriser tous les moteurs de recherche
+
+User-agent: *
+Allow: /
+
+# Bloquer l'accès aux fichiers sensibles
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /src/
+
+# Sitemap (à créer plus tard)
+Sitemap: https://dakanews.com/sitemap.xml
+
+# Crawl-delay pour éviter la surcharge
+Crawl-delay: 1

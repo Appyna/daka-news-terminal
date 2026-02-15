@@ -9,7 +9,7 @@ import { NewsItem, NewsColumn as NewsColumnType } from './types-old';
 import { COLORS } from './constants';
 import { getAllNews } from './services/apiService';
 
-const API_BASE_URL = 'https://daka-news-backend.onrender.com/api';
+const API_BASE_URL = 'https://api.dakanews.com/api';
 
 const App: React.FC = () => {
   const { isPremium, refreshProfile } = useAuth();

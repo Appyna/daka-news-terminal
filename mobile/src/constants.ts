@@ -21,4 +21,4 @@ export const FREE_SOURCES = [
 /**
  * API Backend URL
  */
-export const API_BASE_URL = "https://daka-news-backend.onrender.com/api";
+export const API_BASE_URL = "https://api.dakanews.com/api";
