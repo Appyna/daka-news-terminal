@@ -60,6 +60,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signUp = async (email: string, password: string, username: string) => {
     try {
+      // VÉRIFICATION 1 : Username déjà pris ?
+      const { data: existingUsername } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username)
+        .maybeSingle();
+
+      if (existingUsername) {
+        throw new Error('Ce nom d\'utilisateur est déjà utilisé. Veuillez en choisir un autre.');
+      }
+
+      // VÉRIFICATION 2 : Email déjà pris ?
+      const { data: existingEmail } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (existingEmail) {
+        throw new Error('Cette adresse email est déjà utilisée. Veuillez vous connecter ou utiliser une autre adresse.');
+      }
+
+      // INSCRIPTION Supabase
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -70,14 +93,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Gérer les erreurs Supabase spécifiques
+        if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+          throw new Error('Cette adresse email est déjà utilisée. Veuillez vous connecter ou utiliser une autre adresse.');
+        }
+        throw error;
+      }
 
-      // ✅ Si l'email nécessite confirmation (emailRedirectTo configured)
+      // Si l'email nécessite confirmation (emailRedirectTo configured)
       // Supabase renvoie data.user mais data.session est null
       // Le profil sera créé automatiquement via trigger Database lors de la confirmation
-      
-      // ⚠️ NE PAS créer le profil maintenant si email non confirmé
-      // Le trigger Supabase "on_auth_user_created" s'en chargera automatiquement
       
       return data;
     } catch (err: any) {

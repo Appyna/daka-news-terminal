@@ -107,10 +107,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
         // Inscription
         const result = await signUp(email, password, username);
         
-        // ✅ Vérifier si Supabase demande une confirmation d'email
+        // Vérifier si Supabase demande une confirmation d'email
         if (result?.user && !result?.session) {
           // Email confirmation requis
-          setSuccessMessage('✅ Compte créé ! Un email de confirmation vous a été envoyé. Cliquez sur le lien dans l\'email pour activer votre compte, puis connectez-vous.');
+          setSuccessMessage('Compte créé ! Un email de confirmation vous a été envoyé. Cliquez sur le lien dans l\'email pour activer votre compte, puis connectez-vous.');
           
           // Passer en mode connexion après 5 secondes
           setTimeout(() => {
