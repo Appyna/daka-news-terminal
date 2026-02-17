@@ -167,9 +167,13 @@ Actions militaires/territoriales israéliennes :
 - Exemple : "הסיפוח של אזורים ביהודה ושומרון" → "l'agrandissement de zones en Judée-Samarie"
 
 Actions de tir :
-- 🔴 יורה/shot (contexte tir) → "tiré (sur)" de préférence à "abattu"
-- Exemple : "היורה ירה מספר פעמים" → "le tireur a tiré plusieurs fois" (PAS "a abattu plusieurs fois")
-- "Abattu" pour résultat final (personne tuée), "tiré" pour action de tirer
+- 🔴 שנורה/נורה et formes similaires (contexte personne touchée) → "qui a été touché par balle" OU "qui a reçu des tirs" (JAMAIS "tiré" pour une personne)
+- Exemple : "הצעיר שנורה" → "le jeune homme qui a été touché par balle" (PAS "le jeune homme tiré")
+- 🔴 יורה (contexte action de tirer) → "a tiré" pour l'action elle-même
+- Exemple : "היורה ירה מספר פעמים" → "le tireur a tiré plusieurs fois"
+- 🔴 DISTINCTION CRITIQUE : שנורה (participe passif) = personne TOUCHÉE → "qui a été touché par balle"
+- 🔴 DISTINCTION CRITIQUE : יורה (participe actif) = personne qui TIRE → "a tiré"
+- "Abattu" uniquement si contexte indique décès ("tué par balle"), sinon "touché par balle"
 
 Citations et guillemets :
 - Respecter scrupuleusement propos entre guillemets
@@ -313,7 +317,9 @@ Palestinian Authority/PA → Autorité palestinienne (JAMAIS gouvernement palest
 Resistance (pour actes terroristes) → terrorisme OU actes terroristes (JAMAIS résistance sauf citation)
 🔴 Chief Rabbinate/Rabbinate → Grand Rabbinat OU Rabbinat (JAMAIS rabbinerie)
 🔴 Annexation (contexte Israël/Judée-Samarie) → agrandissement (JAMAIS annexion sauf citation)
-🔴 Shot/fired (contexte tir sur personne) → tiré (sur) (privilégier à "abattu")
+🔴 "was shot"/"got shot"/"been shot" (contexte personne touchée) → "qui a été touché par balle" OU "qui a reçu des tirs" (JAMAIS "tiré"/"abattu"/"mort")
+🔴 "shot" (verbe action) → "a tiré" pour l'action de tirer (exemple: "the gunman shot" → "le tireur a tiré")
+🔴 DISTINCTION : "was shot" (passif) = touché par des tirs VS "shot" (actif) = a effectué des tirs
 
 ═══ TERMES STRICTEMENT INTERDITS (sauf citation guillemets) ═══
 
@@ -395,6 +401,15 @@ Palestiniens/terroristes :
 - 🔴 "Militants killed" → terroristes éliminés ou assaillants tués
 - 🔴 Civils palestiniens décédés : termes factuels neutres (personnes tuées, morts, Palestiniens tués) — sans "victimes innocentes" ni "martyrs"
 - 🔴 Éviter "killed by IDF"→"tué par Tsahal" ; préférer "tué lors d'une opération" ou "tué dans des échanges de tirs"
+
+Actions de tir (personnes touchées) :
+- 🔴 "was shot"/"got shot"/"been shot" (personne touchée) → "qui a été touché par balle" OU "qui a reçu des tirs"
+- Exemple : "the young man who was shot" → "le jeune homme qui a été touché par balle" (PAS "le jeune homme tiré" ou "abattu")
+- 🔴 "shot dead"/"shot and killed" → "tué par balle" (décès confirmé)
+- 🔴 "shot" (verbe actif) → "a tiré" pour action de tirer
+- Exemple : "the gunman shot several times" → "le tireur a tiré plusieurs fois"
+- 🔴 JAMAIS utiliser "tiré" pour qualifier une personne ("l'homme tiré" n'existe pas en français)
+- 🔴 JAMAIS "abattu" sauf contexte animal ou décès confirmé par autorités
 
 Opérations militaires israéliennes :
 - 🔴 "IDF raid" → opération de Tsahal (JAMAIS "raid")

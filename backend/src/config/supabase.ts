@@ -30,6 +30,8 @@ export interface Source {
   free_tier: boolean;
   refresh_interval: number;
   skip_translation: boolean;
+  display_order: number;
+  category_order: number;
   created_at: string;
   updated_at: string;
 }
