@@ -2,7 +2,7 @@
   "expo": {
     "name": "DAKA News",
     "slug": "daka-news",
-    "version": "1.6.0",
+    "version": "1.5.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -55,9 +55,6 @@
     "extra": {
       "eas": {
         "projectId": "72f67e44-ecbe-4df7-95c9-f00dd7204d90"
-      },
-      "sentry": {
-        "dsn": "https://20963a0aa74ef27b4e2d94c105ae763c@o4510427503329280.ingest.de.sentry.io/4510912140738640"
       }
     },
     "owner": "gabriel26-91"

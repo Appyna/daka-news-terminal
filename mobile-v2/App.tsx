@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, PanResponder, Alert, Linking, Text } from 'react-native';
-import * as Sentry from '@sentry/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
@@ -19,14 +18,6 @@ import { COLORS, FREE_SOURCES } from './src/constants';
 import { registerForPushNotifications, addNotificationReceivedListener, addNotificationResponseReceivedListener } from './src/services/notificationService';
 import Constants from 'expo-constants';
 import { supabase } from './src/services/supabaseClient';
-
-// Initialiser Sentry
-Sentry.init({
-  dsn: Constants.expoConfig?.extra?.sentry?.dsn,
-  debug: false, // Mettre à true pour debug
-  tracesSampleRate: 1.0, // 100% des transactions (ajuster à 0.2 en prod si besoin)
-  environment: __DEV__ ? 'development' : 'production',
-});
 
 function MainApp() {
   const { user, profile, isPremium, loading: authLoading } = useAuth();
