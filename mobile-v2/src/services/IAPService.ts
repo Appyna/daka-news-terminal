@@ -176,17 +176,27 @@ class IAPService {
 
       // Sauvegarder dans subscriptions table
       const firstSubscriptionKey = activeSubscriptions[0];
+      
+      // ✅ CORRECTION : Utiliser les bonnes colonnes selon la plateforme
+      const subscriptionData: any = {
+        user_id: userId,
+        platform: Platform.OS === 'ios' ? 'apple' : 'google',
+        status: 'active',
+        current_period_end: expirationDate,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      // Ajouter la colonne spécifique à la plateforme
+      if (Platform.OS === 'ios') {
+        subscriptionData.apple_transaction_id = firstSubscriptionKey || customerInfo.originalAppUserId;
+      } else {
+        subscriptionData.google_purchase_token = firstSubscriptionKey || customerInfo.originalAppUserId;
+      }
+      
       const { error: subError } = await supabase
         .from('subscriptions')
-        .upsert({
-          user_id: userId,
-          platform: Platform.OS === 'ios' ? 'apple' : 'google',
-          subscription_id: firstSubscriptionKey || customerInfo.originalAppUserId,
-          status: 'active',
-          current_period_end: expirationDate,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }, {
+        .upsert(subscriptionData, {
           onConflict: 'user_id,platform'
         });
 
