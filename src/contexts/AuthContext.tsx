@@ -256,8 +256,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Demander la réinitialisation du mot de passe
   async function resetPassword(email: string) {
+    // Utiliser window.location.origin qui maintenant pointe vers dakanews.com grâce à la config Supabase
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://dakanews.com',
+      redirectTo: window.location.origin,
     });
     return { error };
   }
