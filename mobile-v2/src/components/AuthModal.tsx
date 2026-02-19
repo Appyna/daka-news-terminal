@@ -39,23 +39,44 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
   const [otpCode, setOtpCode] = useState('');
   const [pendingEmail, setPendingEmail] = useState('');
 
-  // Traduction des erreurs Supabase en français
+  // Traduction complète des erreurs Supabase en français
   const translateError = (errorMessage: string): string => {
     const errorMap: Record<string, string> = {
+      // Erreurs d'authentification
       'Invalid login credentials': 'Email ou mot de passe incorrect',
       'Email not confirmed': 'Veuillez confirmer votre email avant de vous connecter',
-      'User already registered': 'Un compte existe déjà avec cet email',
-      'Password should be at least 6 characters': 'Le mot de passe doit contenir au moins 6 caractères',
+      'Invalid email': 'Format d\'email invalide',
       'Unable to validate email address: invalid format': 'Format d\'email invalide',
-      'Invalid email': 'Email invalide',
-      'Email rate limit exceeded': 'Trop de tentatives. Veuillez réessayer dans quelques minutes',
+      'Email rate limit exceeded': 'Trop de tentatives. Réessayez dans quelques minutes',
+      'User not found': 'Aucun compte trouvé avec cet email',
+      
+      // Erreurs d'inscription
+      'User already registered': 'Cette adresse email est déjà utilisée. Connectez-vous ou utilisez une autre adresse',
+      'already registered': 'Cette adresse email est déjà utilisée. Connectez-vous ou utilisez une autre adresse',
+      'already been registered': 'Cette adresse email est déjà utilisée. Connectez-vous ou utilisez une autre adresse',
       'Signups not allowed for this instance': 'Les inscriptions sont temporairement désactivées',
-      'Email link is invalid or has expired': 'Le lien email est invalide ou a expiré',
+      'Ce nom d\'utilisateur est déjà utilisé': 'Ce nom d\'utilisateur est déjà utilisé. Choisissez-en un autre',
+      'Cette adresse email est déjà utilisée': 'Cette adresse email est déjà utilisée. Connectez-vous ou utilisez une autre adresse',
+      
+      // Erreurs de mot de passe
+      'Password should be at least 6 characters': 'Le mot de passe doit contenir au moins 6 caractères',
       'Password is too weak': 'Le mot de passe est trop faible. Utilisez au moins une majuscule, un chiffre et un caractère spécial',
       'New password should be different from the old password': 'Le nouveau mot de passe doit être différent de l\'ancien',
-      'User not found': 'Aucun compte trouvé avec cet email',
-      'Token has expired or is invalid': 'Le lien a expiré. Veuillez demander un nouveau lien',
-      'For security purposes, you can only request this once every 60 seconds': 'Pour des raisons de sécurité, attendez 60 secondes avant de réessayer',
+      
+      // Erreurs de lien/token
+      'Email link is invalid or has expired': 'Le lien email est invalide ou a expiré',
+      'Token has expired or is invalid': 'Le code a expiré. Demandez un nouveau code',
+      'Token expired': 'Le code a expiré. Demandez un nouveau code',
+      'Invalid token': 'Code invalide. Vérifiez le code reçu par email',
+      
+      // Rate limiting
+      'For security purposes, you can only request this once every 60 seconds': 'Attendez 60 secondes avant de réessayer',
+      'Too many requests': 'Trop de tentatives. Réessayez dans quelques instants',
+      
+      // Erreurs OTP
+      'OTP expired': 'Le code a expiré. Demandez un nouveau code',
+      'Invalid OTP': 'Code invalide. Vérifiez le code à 6 chiffres reçu par email',
+      'Email OTP has already been used': 'Ce code a déjà été utilisé. Demandez un nouveau code',
     };
 
     // Chercher une correspondance exacte
@@ -65,17 +86,40 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
 
     // Chercher une correspondance partielle
     for (const [key, value] of Object.entries(errorMap)) {
-      if (errorMessage.includes(key)) {
+      if (errorMessage.toLowerCase().includes(key.toLowerCase())) {
         return value;
       }
     }
 
-    // Message par défaut si aucune traduction trouvée
-    return errorMessage.includes('email') || errorMessage.includes('Email')
-      ? 'Erreur avec l\'email. Vérifiez le format'
-      : errorMessage.includes('password') || errorMessage.includes('Password')
-      ? 'Erreur avec le mot de passe'
-      : 'Une erreur est survenue. Veuillez réessayer';
+    // Messages par défaut plus précis
+    const lowerMessage = errorMessage.toLowerCase();
+    
+    if (lowerMessage.includes('email') && (lowerMessage.includes('already') || lowerMessage.includes('déjà') || lowerMessage.includes('exist'))) {
+      return 'Cette adresse email est déjà utilisée. Connectez-vous ou utilisez une autre adresse';
+    }
+    
+    if (lowerMessage.includes('username') || lowerMessage.includes('utilisateur')) {
+      return 'Ce nom d\'utilisateur est déjà utilisé. Choisissez-en un autre';
+    }
+    
+    if (lowerMessage.includes('email') && lowerMessage.includes('format')) {
+      return 'Format d\'email invalide. Vérifiez l\'adresse saisie';
+    }
+    
+    if (lowerMessage.includes('password') && lowerMessage.includes('weak')) {
+      return 'Le mot de passe est trop faible. Utilisez au moins 6 caractères';
+    }
+    
+    if (lowerMessage.includes('rate limit') || lowerMessage.includes('too many')) {
+      return 'Trop de tentatives. Réessayez dans quelques instants';
+    }
+    
+    if (lowerMessage.includes('token') || lowerMessage.includes('code') || lowerMessage.includes('otp')) {
+      return 'Code invalide ou expiré. Vérifiez le code reçu par email';
+    }
+
+    // Message générique en dernier recours
+    return 'Une erreur est survenue. Vérifiez vos informations et réessayez';
   };
 
   const handleSubmit = async () => {
