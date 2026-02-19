@@ -244,22 +244,47 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
             {/* CTA et Retour avec vrais boutons */}
             <View style={styles.actionsRow}>
               {user ? (
-                <Pressable 
-                  style={[styles.ctaButton, loading && styles.ctaButtonLoading]} 
-                  onPress={redirectToCheckout}
-                  disabled={loading}
-                >
-                  <View style={styles.ctaContent}>
-                    {loading && (
-                      <ActivityIndicator 
-                        color={COLORS.dark1} 
-                        size="small" 
-                        style={styles.ctaSpinner}
-                      />
-                    )}
-                    <Text style={styles.ctaText}>Accéder en illimité</Text>
-                  </View>
-                </Pressable>
+                <>
+                  <Pressable 
+                    style={[styles.ctaButton, loading && styles.ctaButtonLoading]} 
+                    onPress={redirectToCheckout}
+                    disabled={loading}
+                  >
+                    <View style={styles.ctaContent}>
+                      {loading && (
+                        <ActivityIndicator 
+                          color={COLORS.dark1} 
+                          size="small" 
+                          style={styles.ctaSpinner}
+                        />
+                      )}
+                      <Text style={styles.ctaText}>Accéder en illimité</Text>
+                    </View>
+                  </Pressable>
+                  
+                  {/* ✅ BOUTON RESTAURER pour synchroniser l'abonnement existant */}
+                  <Pressable 
+                    style={styles.restoreButton} 
+                    onPress={async () => {
+                      try {
+                        setLoading(true);
+                        const restored = await iapService.restorePurchases(user.id);
+                        if (restored) {
+                          Alert.alert('Succès', 'Votre abonnement a été restauré !', [
+                            { text: 'OK', onPress: onClose }
+                          ]);
+                        }
+                      } catch (err) {
+                        console.error('❌ Erreur restore:', err);
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    disabled={loading}
+                  >
+                    <Text style={styles.restoreText}>Restaurer mes achats</Text>
+                  </Pressable>
+                </>
               ) : (
                 <Pressable style={styles.ctaButton} onPress={() => setShowAuth(true)}>
                   <Text style={styles.ctaText}>Accéder en illimité</Text>
@@ -398,6 +423,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+  },
+  restoreButton: {
+    marginTop: 12,
+    padding: 12,
+    alignItems: 'center',
+  },
+  restoreText: {
+    color: COLORS.accentYellow1,
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   ctaButtonLoading: {
     opacity: 0.8,
