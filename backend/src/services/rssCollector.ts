@@ -137,7 +137,7 @@ export async function collectSourceArticles(source: Source): Promise<number> {
     let translation = title;
     
     // Vérifier si traduction nécessaire selon source_lang de la source
-    const sourceLang = (source as any).source_lang || 'fr'; // 'he', 'en', ou 'fr'
+    const sourceLang = source.source_lang || 'fr'; // 'he', 'en', ou 'fr'
     const needsTranslation = !source.skip_translation && sourceLang !== 'fr';
     
     if (needsTranslation) {

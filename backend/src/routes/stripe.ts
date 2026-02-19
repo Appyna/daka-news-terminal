@@ -50,8 +50,8 @@ router.post('/create-checkout-session', async (req, res) => {
       metadata: {
         userId: userId,
       },
-      success_url: `${process.env.FRONTEND_URL || process.env.FRONTEND_URL_WEB || 'https://daka-news-terminal.vercel.app'}?payment=success`,
-      cancel_url: `${process.env.FRONTEND_URL || process.env.FRONTEND_URL_WEB || 'https://daka-news-terminal.vercel.app'}?payment=cancel`,
+      success_url: `${process.env.FRONTEND_URL || 'https://dakanews.com'}?payment=success`,
+      cancel_url: `${process.env.FRONTEND_URL || 'https://dakanews.com'}?payment=cancel`,
       allow_promotion_codes: true,
       billing_address_collection: 'auto',
     });
@@ -104,7 +104,7 @@ router.post('/create-portal-session', async (req, res) => {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: subscription.stripe_customer_id,
-      return_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/`,
+      return_url: `${process.env.FRONTEND_URL || 'https://dakanews.com'}/`,
     });
 
     console.log('✅ Portal session créée pour customer:', subscription.stripe_customer_id);
