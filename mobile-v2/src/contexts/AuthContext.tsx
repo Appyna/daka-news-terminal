@@ -133,6 +133,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       throw error;
     }
+
+    // Vérifier si l'email est confirmé
+    if (data?.user && !data.user.email_confirmed_at) {
+      await supabase.auth.signOut();
+      throw new Error('Veuillez confirmer votre email avant de vous connecter. Vérifiez votre boîte de réception.');
+    }
   };
 
   const signOut = async () => {
@@ -142,7 +148,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'dakanews://reset-password', // Deep link vers l'app mobile
+      redirectTo: 'https://dakanews.com/reset-password',
     });
     if (error) throw error;
   };

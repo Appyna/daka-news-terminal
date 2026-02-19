@@ -199,11 +199,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Connexion
   async function signIn(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    return { error };
+
+    if (error) return { error };
+
+    // Vérifier si l'email est confirmé
+    if (data?.user && !data.user.email_confirmed_at) {
+      await supabase.auth.signOut();
+      return { 
+        error: { 
+          message: 'Veuillez confirmer votre email avant de vous connecter. Vérifiez votre boîte de réception.' 
+        } as AuthError 
+      };
+    }
+
+    return { error: null };
   }
 
   // Déconnexion
