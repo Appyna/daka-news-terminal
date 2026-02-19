@@ -2,23 +2,25 @@
   "expo": {
     "name": "DAKA News",
     "slug": "daka-news",
-    "version": "1.0.0",
+    "version": "1.6.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
+    "scheme": "dakanews",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0A0918"
+      "backgroundColor": "#1a1838"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dakanews.app",
+      "bundleIdentifier": "com.app.dakanews",
       "infoPlist": {
         "NSUserTrackingUsageDescription": "Cette app utilise des données pour personnaliser votre expérience et améliorer nos services.",
         "NSLocationWhenInUseUsageDescription": "Nous utilisons votre localisation pour vous proposer des actualités pertinentes.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "SKPaymentTransactionObserver": true
       }
     },
     "android": {
@@ -26,7 +28,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A0918"
       },
-      "package": "com.dakanews.app",
+      "package": "com.app.dakanews",
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE",
@@ -46,11 +48,16 @@
           "color": "#F5C518",
           "sounds": []
         }
-      ]
+      ],
+      "@sentry/react-native",
+      "sentry-expo"
     ],
     "extra": {
       "eas": {
         "projectId": "72f67e44-ecbe-4df7-95c9-f00dd7204d90"
+      },
+      "sentry": {
+        "dsn": "https://20963a0aa74ef27b4e2d94c105ae763c@o4510427503329280.ingest.de.sentry.io/4510912140738640"
       }
     },
     "owner": "gabriel26-91"

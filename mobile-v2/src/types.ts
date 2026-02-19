@@ -38,8 +38,10 @@ export interface AuthContextType {
   profile: UserProfile | null;
   isPremium: boolean;
   loading: boolean;
-  signUp: (email: string, password: string, username: string) => Promise<void>;
+  signUp: (email: string, password: string, username: string) => Promise<{ user: any | null; session: any | null }>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  verifyOtp: (email: string, token: string) => Promise<{ error: any | null }>;
+  resendOtp: (email: string) => Promise<{ error: any | null }>;
 }

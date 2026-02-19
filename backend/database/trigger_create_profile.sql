@@ -35,23 +35,26 @@ DROP FUNCTION IF EXISTS public.handle_new_user();
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
-SECURITY DEFINER -- ✅ Exécute avec privilèges élevés (contourne RLS)
+SECURITY DEFINER -- Exécute avec privilèges élevés (contourne RLS)
 SET search_path = public
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  -- Insérer le nouveau profil dans la table profiles
-  INSERT INTO public.profiles (id, email, username, is_premium, premium_until, created_at)
-  VALUES (
-    NEW.id,                                                   -- ID de l'utilisateur (depuis auth.users)
-    NEW.email,                                                -- Email confirmé
-    COALESCE(NEW.raw_user_meta_data->>'username', 'User'),   -- Username depuis metadata (défaut: 'User')
-    false,                                                    -- Pas premium par défaut
-    NULL,                                                     -- Pas de date d'expiration premium
-    NOW()                                                     -- Date de création
-  );
+  -- Insérer le profil UNIQUEMENT si email confirmé (après validation OTP)
+  IF NEW.email_confirmed_at IS NOT NULL THEN
+    INSERT INTO public.profiles (id, email, username, is_premium, premium_until, created_at)
+    VALUES (
+      NEW.id,                                                   -- ID de l'utilisateur (depuis auth.users)
+      NEW.email,                                                -- Email confirmé
+      COALESCE(NEW.raw_user_meta_data->>'username', 'User'),   -- Username depuis metadata (défaut: 'User')
+      false,                                                    -- Pas premium par défaut
+      NULL,                                                     -- Pas de date d'expiration premium
+      NOW()                                                     -- Date de création
+    )
+    ON CONFLICT (id) DO NOTHING;  -- Éviter les doublons si profil déjà créé
+  END IF;
   
-  -- Retourner NEW (obligatoire pour les triggers AFTER INSERT)
+  -- Retourner NEW (obligatoire pour les triggers)
   RETURN NEW;
 END;
 $$;
@@ -61,7 +64,7 @@ $$;
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users           -- ✅ Déclenché après confirmation d'email
+  AFTER INSERT OR UPDATE ON auth.users  -- Déclenché après INSERT ou UPDATE (confirmation OTP)
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_new_user();
 

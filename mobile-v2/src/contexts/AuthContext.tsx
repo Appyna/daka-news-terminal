@@ -72,6 +72,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       // VÉRIFICATION 2 : Email déjà pris ?
+      // On vérifie dans profiles ET auth.users pour couvrir tous les cas
       const { data: existingEmail } = await supabase
         .from('profiles')
         .select('email')
@@ -79,6 +80,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .maybeSingle();
 
       if (existingEmail) {
+        throw new Error('Cette adresse email est déjà utilisée. Veuillez vous connecter ou utiliser une autre adresse.');
+      }
+
+      // Double vérification dans auth.users (au cas où profil pas encore créé)
+      const { data: emailInAuth } = await supabase.rpc('check_email_exists', { 
+        check_email: email 
+      });
+
+      if (emailInAuth) {
         throw new Error('Cette adresse email est déjà utilisée. Veuillez vous connecter ou utiliser une autre adresse.');
       }
 
@@ -94,20 +104,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       if (error) {
-        // Gérer les erreurs Supabase spécifiques
-        if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+        // Gérer les erreurs Supabase avec messages français
+        if (error.message.includes('already registered') || error.message.includes('already been registered') || error.message.includes('User already registered')) {
           throw new Error('Cette adresse email est déjà utilisée. Veuillez vous connecter ou utiliser une autre adresse.');
         }
         throw error;
       }
 
-      // Si l'email nécessite confirmation (emailRedirectTo configured)
-      // Supabase renvoie data.user mais data.session est null
-      // Le profil sera créé automatiquement via trigger Database lors de la confirmation
-      
+      // Retourner data pour que AuthModal puisse afficher l'écran OTP
       return data;
     } catch (err: any) {
-      console.error('SignUp error:', err);
       throw err;
     }
   };
@@ -118,7 +124,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      // Améliorer les messages d'erreur
+      if (error.message === 'Invalid login credentials') {
+        throw new Error('Email ou mot de passe incorrect');
+      } else if (error.message === 'Email not confirmed') {
+        throw new Error('Veuillez confirmer votre email avant de vous connecter');
+      }
+      throw error;
+    }
   };
 
   const signOut = async () => {
@@ -127,8 +141,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'dakanews://reset-password', // Deep link vers l'app mobile
+    });
     if (error) throw error;
+  };
+
+  // ✅ COPIE EXACTE DU SITE WEB : verifyOtp
+  const verifyOtp = async (email: string, token: string) => {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'signup',
+      });
+
+      if (error) {
+        return { error };
+      }
+
+      // La session est créée automatiquement par Supabase après verifyOtp
+      // onAuthStateChange se déclenchera et chargera le profil
+      
+      return { error: null };
+    } catch (err: any) {
+      return { error: err };
+    }
+  };
+
+  // ✅ COPIE EXACTE DU SITE WEB : resendOtp
+  const resendOtp = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+    });
+    return { error };
   };
 
   return (
@@ -142,6 +189,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         signIn,
         signOut,
         resetPassword,
+        verifyOtp,
+        resendOtp,
       }}
     >
       {children}

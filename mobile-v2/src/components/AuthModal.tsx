@@ -24,7 +24,7 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirectToPremium = false, initialTab = 'login' }) => {
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, resetPassword, verifyOtp, resendOtp } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>(initialTab);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -33,6 +33,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  
+  // ✅ COPIE EXACTE DU SITE WEB : États OTP
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [pendingEmail, setPendingEmail] = useState('');
 
   // Traduction des erreurs Supabase en français
   const translateError = (errorMessage: string): string => {
@@ -104,24 +109,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
         setSuccessMessage('Connexion réussie !');
         setTimeout(() => onClose(), 800);
       } else {
-        // Inscription
+        // ✅ COPIE EXACTE DU SITE WEB : Inscription avec OTP
         const result = await signUp(email, password, username);
         
-        // Vérifier si Supabase demande une confirmation d'email
-        if (result?.user && !result?.session) {
-          // Email confirmation requis
-          setSuccessMessage('Compte créé ! Un email de confirmation vous a été envoyé. Cliquez sur le lien dans l\'email pour activer votre compte, puis connectez-vous.');
-          
-          // Passer en mode connexion après 5 secondes
-          setTimeout(() => {
-            setActiveTab('login');
-            setPassword('');
-            setSuccessMessage('');
-          }, 5000);
-        } else {
-          // Email confirmé automatiquement (rare)
-          setSuccessMessage('Compte créé avec succès !');
-          setTimeout(() => onClose(), 1500);
+        // Vérifier si Supabase demande une confirmation OTP
+        if (result?.user) {
+          // ✅ MESSAGE EXACT DU SITE WEB
+          setSuccessMessage('Un code de vérification a été envoyé à votre adresse email.');
+          setPendingEmail(email);
+          setShowOtpInput(true);
         }
       }
     } catch (err: any) {
@@ -153,6 +149,61 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
       const translatedError = translateError(err.message || 'Erreur lors de l\'envoi de l\'email');
       setError(translatedError);
       console.error('Reset password error:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ COPIE EXACTE DU SITE WEB : handleVerifyOtp
+  const handleVerifyOtp = async () => {
+    if (otpCode.length !== 6) {
+      setError('Le code doit contenir 6 chiffres');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      const { error: verifyError } = await verifyOtp(pendingEmail, otpCode);
+      
+      if (verifyError) {
+        // ✅ MESSAGE EXACT DU SITE WEB pour erreur OTP
+        if (verifyError.message === 'Token has expired or is invalid') {
+          setError('Le code de vérification est expiré ou invalide. Veuillez demander un nouveau code.');
+        } else {
+          setError(translateError(verifyError.message));
+        }
+      } else {
+        // ✅ MESSAGE EXACT DU SITE WEB pour succès
+        setSuccessMessage('Votre adresse email a été vérifiée avec succès. Connexion en cours...');
+        setTimeout(() => {
+          onClose();
+        }, 1000);
+      }
+    } catch (err: any) {
+      setError(translateError(err.message || 'Erreur lors de la vérification du code'));
+      console.error('Verify OTP error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ COPIE EXACTE DU SITE WEB : handleResendOtp
+  const handleResendOtp = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { error: resendError } = await resendOtp(pendingEmail);
+      
+      if (resendError) {
+        setError('Erreur lors du renvoi du code de vérification. Veuillez réessayer.');
+      } else {
+        // ✅ MESSAGE EXACT DU SITE WEB
+        setSuccessMessage('Un nouveau code de vérification a été envoyé à votre adresse email.');
+      }
+    } catch (err: any) {
+      setError('Erreur lors du renvoi du code de vérification. Veuillez réessayer.');
+      console.error('Resend OTP error:', err);
     } finally {
       setLoading(false);
     }
@@ -255,6 +306,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
               ) : (
                 /* Mode Login/Signup normal */
                 <>
+                  {/* ✅ COPIE EXACTE DU SITE WEB : Écran OTP après inscription */}
+                  {showOtpInput ? (
+                    <>
+                      <Text style={styles.otpDescription}>
+                        Un code à 6 chiffres a été envoyé à {pendingEmail}
+                      </Text>
+
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Code de vérification</Text>
+                        <TextInput
+                          style={styles.otpInput}
+                          placeholder="000000"
+                          placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                          value={otpCode}
+                          onChangeText={(text) => setOtpCode(text.replace(/\D/g, '').slice(0, 6))}
+                          keyboardType="number-pad"
+                          maxLength={6}
+                          autoFocus
+                        />
+                      </View>
+
+                      {error ? <Text style={styles.error}>{error}</Text> : null}
+                      {successMessage ? <Text style={styles.success}>{successMessage}</Text> : null}
+
+                      {/* Bouton Vérifier le code */}
+                      <Pressable
+                        style={[styles.ctaButton, loading && styles.ctaButtonDisabled]}
+                        onPress={handleVerifyOtp}
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <ActivityIndicator color={COLORS.dark1} />
+                        ) : (
+                          <Text style={styles.ctaText}>Vérifier le code</Text>
+                        )}
+                      </Pressable>
+
+                      {/* Lien Renvoyer le code */}
+                      <Pressable onPress={handleResendOtp} disabled={loading} style={styles.resendButton}>
+                        <Text style={styles.resendLink}>Renvoyer le code</Text>
+                      </Pressable>
+                    </>
+                  ) : (
+                    <>
+                      {/* Formulaire Login/Signup normal */}
                   {/* Champ Nom d'utilisateur (uniquement pour Inscription) */}
                   {activeTab === 'signup' && (
                     <View style={styles.inputGroup}>
@@ -339,6 +435,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
                       </Text>
                     )}
                   </Pressable>
+                    </>
+                  )}
                 </>
               )}
             </ScrollView>
@@ -526,5 +624,34 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: 'rgba(255, 255, 255, 0.5)',
     fontWeight: '300',
+  },
+  // ✅ COPIE EXACTE DU SITE WEB : Styles OTP
+  otpInput: {
+    backgroundColor: COLORS.dark3,
+    borderRadius: 8,
+    padding: 12,
+    color: '#fff',
+    fontSize: 24,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    textAlign: 'center',
+    letterSpacing: 8,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  otpDescription: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 17,
+  },
+  resendButton: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  resendLink: {
+    fontSize: 12,
+    color: COLORS.accentYellow1,
+    fontWeight: '500',
   },
 });

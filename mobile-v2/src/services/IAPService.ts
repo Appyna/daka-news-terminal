@@ -1,21 +1,6 @@
 import { Platform, Alert } from 'react-native';
-// import * as RNIap from 'react-native-iap'; // TODO: Réactiver après fix Expo IAP
+import Purchases, { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
 import { supabase } from './supabaseClient';
-import { IAP_PRODUCT_IDS } from '../constants';
-
-// Mock temporaire pour compilation (IAP désactivé)
-const RNIap = {
-  initConnection: async () => {},
-  clearTransactionIOS: async () => {},
-  getSubscriptions: async (...args: any[]) => [],
-  requestSubscription: async (...args: any[]) => null,
-  finishTransaction: async (...args: any[]) => {},
-  acknowledgePurchaseAndroid: async (...args: any[]) => {},
-  purchaseUpdatedListener: (...args: any[]) => ({ remove: () => {} }),
-  purchaseErrorListener: (...args: any[]) => ({ remove: () => {} }),
-  getAvailablePurchases: async () => [],
-  endConnection: async () => {},
-};
 
 export interface IAPProduct {
   productId: string;
@@ -33,49 +18,70 @@ class IAPService {
     if (this.isInitialized) return;
 
     try {
-      await RNIap.initConnection();
-      console.log('✅ IAP connection établie');
-
-      if (Platform.OS === 'ios') {
-        await RNIap.clearTransactionIOS();
-      }
+      // Configuration RevenueCat avec votre API Key
+      Purchases.configure({ 
+        apiKey: Platform.OS === 'ios' 
+          ? 'appl_JzBGrniAoiIvnDUEGYdBakscCdq' // iOS API Key prod RevenueCat
+          : 'YOUR_GOOGLE_API_KEY' // À configurer plus tard pour Android
+      });
+      
+      console.log('✅ RevenueCat configuré');
 
       await this.loadProducts();
       this.setupPurchaseListener();
 
       this.isInitialized = true;
     } catch (error) {
-      console.error('❌ Erreur initialisation IAP:', error);
+      console.error('❌ Erreur initialisation RevenueCat:', error);
       throw error;
     }
   }
 
   private async loadProducts(): Promise<void> {
     try {
-      const productId = Platform.OS === 'ios' ? IAP_PRODUCT_IDS.ios : IAP_PRODUCT_IDS.android;
-      const products = await RNIap.getSubscriptions({ skus: [productId] });
-
-      if (!products || products.length === 0) {
-        console.warn('⚠️ Aucun produit IAP trouvé');
+      // Récupérer les offerings (packages) depuis RevenueCat
+      const offerings = await Purchases.getOfferings();
+      
+      if (!offerings.current || offerings.current.availablePackages.length === 0) {
+        console.warn('⚠️ Aucun offering disponible');
         return;
       }
 
-      this.products = products.map((p: any) => ({
-        productId: p.productId,
-        title: p.title,
-        description: p.description,
-        price: p.localizedPrice,
-        currency: p.currency,
-      }));
+      // Récupérer le package mensuel (vous le configurerez dans RevenueCat dashboard)
+      const monthlyPackage = offerings.current.availablePackages.find(
+        (pkg: PurchasesPackage) => pkg.identifier === '$rc_monthly'
+      );
 
-      console.log('✅ Produits IAP chargés:', this.products);
+      if (monthlyPackage) {
+        this.products = [{
+          productId: monthlyPackage.product.identifier,
+          title: monthlyPackage.product.title,
+          description: monthlyPackage.product.description,
+          price: monthlyPackage.product.priceString,
+          currency: monthlyPackage.product.currencyCode,
+        }];
+
+        console.log('✅ Produits RevenueCat chargés:', this.products);
+      }
     } catch (error) {
-      console.error('❌ Erreur chargement produits IAP:', error);
+      console.error('❌ Erreur chargement produits RevenueCat:', error);
     }
   }
 
   getProducts(): IAPProduct[] {
     return this.products;
+  }
+
+  async getLocalizedPrice(): Promise<string> {
+    if (!this.isInitialized) {
+      await this.initialize();
+    }
+
+    if (this.products.length > 0) {
+      return this.products[0].price;
+    }
+
+    return '1,99 €'; // Prix par défaut
   }
 
   async purchasePremium(userId: string): Promise<boolean> {
@@ -84,121 +90,152 @@ class IAPService {
         await this.initialize();
       }
 
-      const productId = Platform.OS === 'ios' ? IAP_PRODUCT_IDS.ios : IAP_PRODUCT_IDS.android;
-      console.log(`🛒 Achat lancé pour: ${productId}`);
+      // Identifier l'utilisateur dans RevenueCat
+      await Purchases.logIn(userId);
 
-      const purchase: any = await RNIap.requestSubscription({ sku: productId });
-
-      console.log('✅ Achat réussi:', purchase);
+      // Récupérer les offerings
+      const offerings = await Purchases.getOfferings();
       
-      if (!purchase) {
-        throw new Error('Aucun achat retourné');
+      if (!offerings.current || offerings.current.availablePackages.length === 0) {
+        throw new Error('Aucun abonnement disponible');
       }
 
-      await this.savePurchaseToSupabase(userId, purchase);
+      // Récupérer le package mensuel
+      const monthlyPackage = offerings.current.availablePackages.find(
+        (pkg: PurchasesPackage) => pkg.identifier === '$rc_monthly'
+      );
 
-      if (Platform.OS === 'ios') {
-        await RNIap.finishTransaction({ purchase, isConsumable: false });
-      } else {
-        await RNIap.acknowledgePurchaseAndroid({ purchaseToken: purchase.purchaseToken });
+      if (!monthlyPackage) {
+        throw new Error('Package mensuel non trouvé');
       }
+
+      console.log(`🛒 Achat lancé pour: ${monthlyPackage.product.identifier}`);
+
+      // Lancer l'achat (StoreKit d'Apple s'ouvre ici - interface native)
+      const purchaseResult = await Purchases.purchasePackage(monthlyPackage);
+
+      console.log('✅ Achat réussi:', purchaseResult);
+
+      // Sauvegarder dans Supabase
+      await this.savePurchaseToSupabase(userId, purchaseResult.customerInfo);
 
       return true;
     } catch (error: any) {
-      if (error.code === 'E_USER_CANCELLED') {
+      if (error.code === Purchases.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
         console.log('ℹ️ Achat annulé par l\'utilisateur');
         return false;
       }
 
-      console.error('❌ Erreur achat IAP:', error);
-      Alert.alert('Erreur', 'Impossible de finaliser l\'achat. Réessayez plus tard.');
+      console.error('❌ Erreur achat RevenueCat:', error);
+      Alert.alert('Erreur', error.message || 'Impossible de finaliser l\'achat. Réessayez plus tard.');
       return false;
     }
   }
 
   private setupPurchaseListener(): void {
-    RNIap.purchaseUpdatedListener((purchase: any) => {
-      console.log('🔔 Achat reçu:', purchase);
-    });
-
-    RNIap.purchaseErrorListener((error: any) => {
-      console.warn('⚠️ Erreur achat:', error);
-    });
+    // RevenueCat gère automatiquement les updates de purchase
+    console.log('🔔 Listener RevenueCat actif');
   }
 
-  private async savePurchaseToSupabase(userId: string, purchase: any): Promise<void> {
+  private async savePurchaseToSupabase(userId: string, customerInfo: CustomerInfo): Promise<void> {
     try {
-      const platform = Platform.OS === 'ios' ? 'apple' : 'google';
-      
-      const { error } = await supabase
+      // Vérifier si l'utilisateur a un abonnement actif
+      const isPremium = typeof customerInfo.entitlements.active['premium'] !== 'undefined';
+      const expirationDate = customerInfo.entitlements.active['premium']?.expirationDate;
+
+      if (!isPremium) {
+        console.warn('⚠️ Aucun abonnement actif trouvé');
+        return;
+      }
+
+      // Récupérer les infos de transaction
+      const allTransactions = customerInfo.nonSubscriptionTransactions;
+      const latestTransaction = allTransactions && allTransactions.length > 0 
+        ? allTransactions[allTransactions.length - 1] 
+        : null;
+
+      // Sauvegarder dans subscriptions table
+      const { error: subError } = await supabase
         .from('subscriptions')
         .upsert({
           user_id: userId,
-          platform,
-          ...(Platform.OS === 'ios' && {
-            apple_transaction_id: purchase.transactionId,
-            apple_original_transaction_id: purchase.originalTransactionId,
-          }),
-          ...(Platform.OS === 'android' && {
-            google_purchase_token: purchase.purchaseToken,
-            google_order_id: purchase.orderId,
-          }),
+          platform: Platform.OS === 'ios' ? 'apple' : 'google',
+          subscription_id: latestTransaction?.transactionIdentifier || customerInfo.originalAppUserId,
           status: 'active',
-          current_period_start: new Date().toISOString(),
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          current_period_end: expirationDate || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         }, {
-          onConflict: 'user_id'
+          onConflict: 'user_id,platform'
         });
 
-      if (error) {
-        console.error('❌ Erreur sauvegarde Supabase:', error);
-      } else {
-        // Activer Premium
-        await supabase
-          .from('profiles')
-          .update({
-            is_premium: true,
-            premium_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          })
-          .eq('id', userId);
-        
-        console.log('✅ Premium activé dans Supabase');
+      if (subError) {
+        console.error('❌ Erreur sauvegarde subscription:', subError);
+        throw subError;
       }
+
+      // Activer le premium dans profiles
+      const { error: profileError } = await supabase.rpc('activate_premium', {
+        p_user_id: userId,
+        p_duration_days: 30
+      });
+
+      if (profileError) {
+        console.error('❌ Erreur activation premium:', profileError);
+        throw profileError;
+      }
+
+      console.log('✅ Premium activé pour user:', userId);
     } catch (error) {
-      console.error('❌ Erreur sauvegarde purchase:', error);
+      console.error('❌ Erreur sauvegarde Supabase:', error);
+      throw error;
     }
   }
 
   async restorePurchases(userId: string): Promise<boolean> {
     try {
       console.log('🔄 Restauration des achats...');
-      const purchases = await RNIap.getAvailablePurchases();
 
-      if (purchases.length === 0) {
-        Alert.alert('Aucun achat trouvé', 'Aucun abonnement actif trouvé.');
+      // Identifier l'utilisateur
+      await Purchases.logIn(userId);
+
+      // Restaurer les achats
+      const customerInfo = await Purchases.restorePurchases();
+
+      // Vérifier si Premium actif
+      const isPremium = typeof customerInfo.entitlements.active['premium'] !== 'undefined';
+
+      if (isPremium) {
+        await this.savePurchaseToSupabase(userId, customerInfo);
+        Alert.alert('Succès', 'Vos achats ont été restaurés !');
+        return true;
+      } else {
+        Alert.alert('Information', 'Aucun abonnement actif trouvé.');
         return false;
       }
-
-      for (const purchase of purchases) {
-        await this.savePurchaseToSupabase(userId, purchase);
-      }
-
-      Alert.alert('Succès', 'Vos achats ont été restaurés !');
-      return true;
-    } catch (error) {
-      console.error('❌ Erreur restauration achats:', error);
-      Alert.alert('Erreur', 'Impossible de restaurer vos achats.');
+    } catch (error: any) {
+      console.error('❌ Erreur restauration:', error);
+      Alert.alert('Erreur', 'Impossible de restaurer les achats.');
       return false;
     }
   }
 
-  async disconnect(): Promise<void> {
+  async checkSubscriptionStatus(userId: string): Promise<boolean> {
     try {
-      await RNIap.endConnection();
-      this.isInitialized = false;
-      console.log('✅ IAP connection fermée');
+      await Purchases.logIn(userId);
+      const customerInfo = await Purchases.getCustomerInfo();
+      
+      const isPremium = typeof customerInfo.entitlements.active['premium'] !== 'undefined';
+      
+      if (isPremium) {
+        // Sync avec Supabase
+        await this.savePurchaseToSupabase(userId, customerInfo);
+      }
+
+      return isPremium;
     } catch (error) {
-      console.error('❌ Erreur déconnexion IAP:', error);
+      console.error('❌ Erreur vérification status:', error);
+      return false;
     }
   }
 }

@@ -15,8 +15,8 @@ import { COLORS, FREE_SOURCES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthModal } from './AuthModal';
 import { apiService } from '../services/apiService';
-// import { iapService } from '../services/IAPService'; // TODO: Réactiver après fix Expo IAP
 import { supabase } from '../services/supabaseClient';
+import { iapService } from '../services/IAPService';
 import Svg, { Path, Circle } from 'react-native-svg';
 
 interface PremiumModalProps {
@@ -79,15 +79,10 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
 
   const fetchLocalizedPrice = async () => {
     try {
-      setLoadingPrice(true);
-      // TODO: Réactiver IAP
-      // const products = await iapService.getProducts();
-      // if (products.length > 0) {
-      //   setLocalizedPrice(products[0].price);
-      // }
-      console.log('⚠️ IAP désactivé temporairement');
-    } catch (err) {
-      console.error('❌ Erreur récupération prix:', err);
+      const price = await iapService.getLocalizedPrice();
+      setLocalizedPrice(price);
+    } catch (error) {
+      console.warn('Failed to fetch localized price, using default', error);
     } finally {
       setLoadingPrice(false);
     }
@@ -116,16 +111,20 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
     setLoading(true);
     
     try {
-      // Sur iOS/Android natif : utiliser In-App Purchase
       if (Platform.OS === 'ios' || Platform.OS === 'android') {
-        console.log('⚠️ IAP désactivé temporairement');
-        Alert.alert(
-          'IAP temporairement indisponible',
-          'L\'In-App Purchase sera réactivé dans la prochaine version.',
-          [{ text: 'OK', onPress: () => onClose() }]
-        );
+        // Utiliser l'IAP natif sur mobile
+        console.log('💳 Lancement IAP natif...');
+        const success = await iapService.purchasePremium(user.id);
+        if (success) {
+          Alert.alert(
+            'Succès',
+            'Votre abonnement Premium a été activé !',
+            [{ text: 'OK', onPress: onClose }]
+          );
+          console.log('✅ Abonnement Premium activé');
+        }
       } else {
-        // Sur web : utiliser Stripe (fallback)
+        // Stripe web pour le web
         console.log('💳 Lancement Stripe checkout (web)...');
         const response = await apiService.createStripeCheckoutSession(user.id, profile.email);
         Linking.openURL(response.url);
@@ -133,7 +132,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
       }
     } catch (err) {
       console.error('❌ Erreur paiement:', err);
-      Alert.alert('Erreur', 'Impossible de finaliser le paiement. Réessayez plus tard.');
+      Alert.alert('Erreur', err.message || 'Impossible de finaliser le paiement. Réessayez plus tard.');
     } finally {
       setLoading(false);
     }
@@ -231,13 +230,10 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
               {loadingPrice ? (
                 <ActivityIndicator color={COLORS.accentYellow1} size="small" />
               ) : (
-                <>
-                  <View style={styles.priceRow}>
-                    <Text style={styles.price}>{localizedPrice}</Text>
-                    <Text style={styles.priceSubtext}> /mois</Text>
-                  </View>
-                  <Text style={styles.priceIsrael}>(7,99 ₪ en Israël)</Text>
-                </>
+                <View style={styles.priceRow}>
+                  <Text style={styles.price}>{localizedPrice}</Text>
+                  <Text style={styles.priceSubtext}> /mois</Text>
+                </View>
               )}
             </View>
 

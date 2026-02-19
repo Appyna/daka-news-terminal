@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, PanResponder, Alert, Linking, Text } from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
@@ -18,6 +19,14 @@ import { COLORS, FREE_SOURCES } from './src/constants';
 import { registerForPushNotifications, addNotificationReceivedListener, addNotificationResponseReceivedListener } from './src/services/notificationService';
 import Constants from 'expo-constants';
 import { supabase } from './src/services/supabaseClient';
+
+// Initialiser Sentry
+Sentry.init({
+  dsn: Constants.expoConfig?.extra?.sentry?.dsn,
+  debug: false, // Mettre à true pour debug
+  tracesSampleRate: 1.0, // 100% des transactions (ajuster à 0.2 en prod si besoin)
+  environment: __DEV__ ? 'development' : 'production',
+});
 
 function MainApp() {
   const { user, profile, isPremium, loading: authLoading } = useAuth();
@@ -214,20 +223,6 @@ function MainApp() {
       Alert.alert('Erreur', 'Impossible d\'ouvrir la page de gestion');
     }
   };
-
-  // ✅ Afficher écran de chargement si auth en cours (APRÈS tous les hooks)
-  if (authLoading) {
-    return (
-      <View style={styles.loadingScreen}>
-        <StatusBar style="light" />
-        <View style={styles.logoWrapper}>
-          <Text style={styles.logoText}>DAKA</Text>
-          <Text style={styles.logoSubtext}>NEWS</Text>
-        </View>
-        <Text style={styles.loadingText}>Chargement...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
