@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "135f3c3d-d0f1-4e9c-8acb-b2d69a1da636"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.gabriel2691.dakanewsterminal",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}

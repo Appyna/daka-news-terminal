@@ -140,7 +140,6 @@ class IAPService {
   private async savePurchaseToSupabase(userId: string, customerInfo: CustomerInfo): Promise<void> {
     try {
       // ✅ CORRECTION : Vérifier activeSubscriptions au lieu d'entitlements
-      // Les entitlements nécessitent une configuration manuelle dans RevenueCat Dashboard
       const activeSubscriptions = Object.keys(customerInfo.activeSubscriptions);
       const isPremium = activeSubscriptions.length > 0;
       
@@ -149,18 +148,34 @@ class IAPService {
         return;
       }
 
-      // Récupérer la date d'expiration depuis la première souscription active
-      const firstSubscriptionKey = activeSubscriptions[0];
-      
-      // Calculer expiration : date actuelle + 30 jours
-      const expDate = new Date();
-      expDate.setDate(expDate.getDate() + 30);
-      const expirationDate = expDate.toISOString();
-      
       console.log('📦 Abonnements actifs:', activeSubscriptions);
-      console.log('📅 Expiration calculée:', expirationDate);
+
+      // ✅ RÉCUPÉRER LA VRAIE DATE D'EXPIRATION depuis RevenueCat
+      // Essayer de récupérer depuis allExpirationDates (iOS fournit cette info)
+      let expirationDate: string | null = null;
+      
+      // Pour iOS, RevenueCat expose les dates d'expiration dans allExpirationDates
+      const allExpirationDates = customerInfo.allExpirationDates;
+      if (allExpirationDates && Object.keys(allExpirationDates).length > 0) {
+        // Prendre la première date d'expiration disponible
+        const firstProductKey = Object.keys(allExpirationDates)[0];
+        const expiryDate = allExpirationDates[firstProductKey];
+        if (expiryDate) {
+          expirationDate = new Date(expiryDate).toISOString();
+          console.log('✅ Date d\'expiration depuis RevenueCat:', expirationDate);
+        }
+      }
+      
+      // Fallback : si pas de date disponible, calculer +30 jours
+      if (!expirationDate) {
+        const expDate = new Date();
+        expDate.setDate(expDate.getDate() + 30);
+        expirationDate = expDate.toISOString();
+        console.warn('⚠️ Pas de date d\'expiration dans RevenueCat, calcul +30j:', expirationDate);
+      }
 
       // Sauvegarder dans subscriptions table
+      const firstSubscriptionKey = activeSubscriptions[0];
       const { error: subError } = await supabase
         .from('subscriptions')
         .upsert({
@@ -180,22 +195,38 @@ class IAPService {
         throw subError;
       }
 
-      // ✅ Activer le premium directement dans profiles (plus fiable que RPC)
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          is_premium: true,
-          premium_until: expirationDate,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
+      // ✅ Utiliser la fonction RPC pour cohérence avec backend webhooks
+      // Calculer le nombre de jours jusqu'à expiration
+      const now = new Date();
+      const expiryDate = new Date(expirationDate);
+      const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Activer premium via RPC (même méthode que webhooks Stripe/Apple/Google)
+      const { error: profileError } = await supabase.rpc('activate_premium', {
+        user_id_param: userId,
+        months: Math.max(1, Math.ceil(daysUntilExpiry / 30)) // Convertir jours en mois
+      });
 
       if (profileError) {
-        console.error('❌ Erreur activation premium:', profileError);
-        throw profileError;
+        console.error('❌ Erreur activation premium via RPC:', profileError);
+        // Fallback : UPDATE direct si RPC échoue
+        const { error: fallbackError } = await supabase
+          .from('profiles')
+          .update({
+            is_premium: true,
+            premium_until: expirationDate,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId);
+        
+        if (fallbackError) {
+          console.error('❌ Erreur fallback UPDATE:', fallbackError);
+          throw fallbackError;
+        }
+        console.log('✅ Premium activé via fallback UPDATE');
+      } else {
+        console.log('✅ Premium activé via RPC pour user:', userId, 'jusqu\'au', expirationDate);
       }
-
-      console.log('✅ Premium activé pour user:', userId, 'jusqu\'au', expirationDate);
     } catch (error) {
       console.error('❌ Erreur sauvegarde Supabase:', error);
       throw error;
