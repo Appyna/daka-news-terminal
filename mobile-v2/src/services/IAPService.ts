@@ -139,20 +139,26 @@ class IAPService {
 
   private async savePurchaseToSupabase(userId: string, customerInfo: CustomerInfo): Promise<void> {
     try {
-      // Vérifier si l'utilisateur a un abonnement actif
-      const isPremium = typeof customerInfo.entitlements.active['premium'] !== 'undefined';
-      const expirationDate = customerInfo.entitlements.active['premium']?.expirationDate;
-
+      // ✅ CORRECTION : Vérifier activeSubscriptions au lieu d'entitlements
+      // Les entitlements nécessitent une configuration manuelle dans RevenueCat Dashboard
+      const activeSubscriptions = Object.keys(customerInfo.activeSubscriptions);
+      const isPremium = activeSubscriptions.length > 0;
+      
       if (!isPremium) {
-        console.warn('⚠️ Aucun abonnement actif trouvé');
+        console.warn('⚠️ Aucun abonnement actif trouvé dans RevenueCat');
         return;
       }
 
-      // Récupérer les infos de transaction
-      const allTransactions = customerInfo.nonSubscriptionTransactions;
-      const latestTransaction = allTransactions && allTransactions.length > 0 
-        ? allTransactions[allTransactions.length - 1] 
-        : null;
+      // Récupérer la date d'expiration depuis la première souscription active
+      const firstSubscriptionKey = activeSubscriptions[0];
+      
+      // Calculer expiration : date actuelle + 30 jours
+      const expDate = new Date();
+      expDate.setDate(expDate.getDate() + 30);
+      const expirationDate = expDate.toISOString();
+      
+      console.log('📦 Abonnements actifs:', activeSubscriptions);
+      console.log('📅 Expiration calculée:', expirationDate);
 
       // Sauvegarder dans subscriptions table
       const { error: subError } = await supabase
@@ -160,9 +166,9 @@ class IAPService {
         .upsert({
           user_id: userId,
           platform: Platform.OS === 'ios' ? 'apple' : 'google',
-          subscription_id: latestTransaction?.transactionIdentifier || customerInfo.originalAppUserId,
+          subscription_id: firstSubscriptionKey || customerInfo.originalAppUserId,
           status: 'active',
-          current_period_end: expirationDate || null,
+          current_period_end: expirationDate,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }, {
@@ -174,18 +180,22 @@ class IAPService {
         throw subError;
       }
 
-      // Activer le premium dans profiles
-      const { error: profileError } = await supabase.rpc('activate_premium', {
-        p_user_id: userId,
-        p_duration_days: 30
-      });
+      // ✅ Activer le premium directement dans profiles (plus fiable que RPC)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          is_premium: true,
+          premium_until: expirationDate,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
 
       if (profileError) {
         console.error('❌ Erreur activation premium:', profileError);
         throw profileError;
       }
 
-      console.log('✅ Premium activé pour user:', userId);
+      console.log('✅ Premium activé pour user:', userId, 'jusqu\'au', expirationDate);
     } catch (error) {
       console.error('❌ Erreur sauvegarde Supabase:', error);
       throw error;
@@ -202,8 +212,9 @@ class IAPService {
       // Restaurer les achats
       const customerInfo = await Purchases.restorePurchases();
 
-      // Vérifier si Premium actif
-      const isPremium = typeof customerInfo.entitlements.active['premium'] !== 'undefined';
+      // ✅ Vérifier via activeSubscriptions
+      const activeSubscriptions = Object.keys(customerInfo.activeSubscriptions);
+      const isPremium = activeSubscriptions.length > 0;
 
       if (isPremium) {
         await this.savePurchaseToSupabase(userId, customerInfo);
@@ -222,20 +233,52 @@ class IAPService {
 
   async checkSubscriptionStatus(userId: string): Promise<boolean> {
     try {
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
+
+      console.log('🔍 Vérification statut RevenueCat pour:', userId);
       await Purchases.logIn(userId);
       const customerInfo = await Purchases.getCustomerInfo();
       
-      const isPremium = typeof customerInfo.entitlements.active['premium'] !== 'undefined';
+      // ✅ Vérifier via activeSubscriptions
+      const activeSubscriptions = Object.keys(customerInfo.activeSubscriptions);
+      const isPremium = activeSubscriptions.length > 0;
+      
+      console.log('📊 Statut RevenueCat:', {
+        isPremium,
+        activeSubscriptions,
+        originalAppUserId: customerInfo.originalAppUserId
+      });
       
       if (isPremium) {
-        // Sync avec Supabase
+        // ✅ Sync avec Supabase à chaque vérification
         await this.savePurchaseToSupabase(userId, customerInfo);
+        console.log('✅ Statut premium synchronisé avec Supabase');
+      } else {
+        console.log('ℹ️ Pas d\'abonnement actif dans RevenueCat');
       }
 
       return isPremium;
     } catch (error) {
       console.error('❌ Erreur vérification status:', error);
       return false;
+    }
+  }
+
+  // ✅ NOUVELLE MÉTHODE : Vérifier et synchroniser au démarrage de l'app
+  async syncPremiumStatusOnStartup(userId: string): Promise<void> {
+    try {
+      console.log('🔄 Synchronisation premium au démarrage...');
+      const isPremium = await this.checkSubscriptionStatus(userId);
+      
+      if (isPremium) {
+        console.log('✅ Utilisateur premium confirmé');
+      } else {
+        console.log('ℹ️ Utilisateur non-premium');
+      }
+    } catch (error) {
+      console.error('❌ Erreur sync startup:', error);
     }
   }
 }

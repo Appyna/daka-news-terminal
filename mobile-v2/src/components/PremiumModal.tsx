@@ -116,11 +116,15 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
         console.log('💳 Lancement IAP natif...');
         const success = await iapService.purchasePremium(user.id);
         if (success) {
-          Alert.alert(
-            'Succès',
-            'Votre abonnement Premium a été activé !',
-            [{ text: 'OK', onPress: onClose }]
-          );
+          // ✅ Forcer le rechargement du profil après achat
+          setTimeout(async () => {
+            await iapService.syncPremiumStatusOnStartup(user.id);
+            Alert.alert(
+              'Succès',
+              'Votre abonnement Premium a été activé ! Redémarrez l\'app pour voir vos sources premium.',
+              [{ text: 'OK', onPress: onClose }]
+            );
+          }, 2000); // Attendre 2s pour laisser RevenueCat traiter
           console.log('✅ Abonnement Premium activé');
         }
       } else {

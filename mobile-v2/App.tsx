@@ -12,7 +12,7 @@ import { PremiumModal } from './src/components/PremiumModal';
 import { SettingsModal } from './src/components/SettingsModal';
 import { Logo } from './src/components/Logo';
 import { apiService } from './src/services/apiService';
-// import { iapService } from './src/services/IAPService'; // TODO: Réactiver après fix Expo IAP
+import { iapService } from './src/services/IAPService';
 import { Article } from './src/types';
 import { COLORS, FREE_SOURCES } from './src/constants';
 import { registerForPushNotifications, addNotificationReceivedListener, addNotificationResponseReceivedListener } from './src/services/notificationService';
@@ -33,26 +33,39 @@ function MainApp() {
   const [premiumModalVisible, setPremiumModalVisible] = useState(false);
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 
-  // Initialiser IAP au démarrage
+  // ✅ Initialiser IAP et synchroniser le statut premium au démarrage
   useEffect(() => {
-    // TODO: Réactiver après fix Expo IAP
-    /*
-    const initIAP = async () => {
+    const initIAPAndSync = async () => {
       try {
         await iapService.initialize();
         console.log('✅ IAP initialisé');
+
+        // Si utilisateur connecté, vérifier et synchroniser le statut premium
+        if (user?.id) {
+          await iapService.syncPremiumStatusOnStartup(user.id);
+        }
       } catch (err) {
         console.error('❌ Erreur init IAP:', err);
       }
     };
 
-    initIAP();
-
-    return () => {
-      iapService.disconnect();
-    };
-    */
+    initIAPAndSync();
   }, []);
+
+  // ✅ Re-synchroniser le statut premium quand l'utilisateur se connecte
+  useEffect(() => {
+    if (user?.id && !authLoading) {
+      const syncPremium = async () => {
+        try {
+          await iapService.syncPremiumStatusOnStartup(user.id);
+        } catch (err) {
+          console.error('❌ Erreur sync premium:', err);
+        }
+      };
+      
+      syncPremium();
+    }
+  }, [user?.id, authLoading]);
 
   // Enregistrer les notifications
   useEffect(() => {
