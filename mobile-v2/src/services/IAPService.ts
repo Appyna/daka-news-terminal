@@ -194,11 +194,10 @@ class IAPService {
         subscriptionData.google_purchase_token = firstSubscriptionKey || customerInfo.originalAppUserId;
       }
       
+      // ✅ FIX : INSERT simple au lieu de UPSERT (pas de contrainte unique sur user_id,platform)
       const { error: subError } = await supabase
         .from('subscriptions')
-        .upsert(subscriptionData, {
-          onConflict: 'user_id,platform'
-        });
+        .insert(subscriptionData);
 
       if (subError) {
         console.error('❌ Erreur sauvegarde subscription:', subError);
