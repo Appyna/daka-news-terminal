@@ -208,94 +208,40 @@ class IAPService {
         subscriptionData.google_purchase_token = transactionId;
       }
       
-      // ✅ VÉRIFIER SI SUBSCRIPTION EXISTE DÉJÀ (éviter duplicatas)
-      const { data: existingSub } = await supabase
-        .from('subscriptions')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('platform', Platform.OS === 'ios' ? 'apple' : 'google')
-        .eq('status', 'active')
-        .single();
-
-      if (existingSub) {
-        console.log('ℹ️ Subscription déjà existante, skip insertion');
-        // Juste update le profile
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({
-            is_premium: true,
-            premium_until: expirationDate,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', userId);
-
-        if (updateError) {
-          console.error('❌ Erreur update profile:', updateError);
-        }
-        
-        return true; // Succès même si déjà existant
-      }
-
-      // ✅ APPEL EDGE FUNCTION CÔTÉ SERVEUR (bypass RLS avec service_role)
-      const session = await supabase.auth.getSession();
-      if (!session.data.session) {
-        throw new Error('Session non trouvée');
-      }
-
-      // Calculer le nombre de jours jusqu'à expiration pour RPC
-      const now = new Date();
-      const expiryDate = new Date(expirationDate);
-      const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      // ✅ UPSERT maintenant qu'on a la contrainte UNIQUE (user_id, platform)
+      console.log('💾 Sauvegarde subscription (UPSERT):', subscriptionData);
       
-      const profileData = {
-        id: userId,
-        is_premium: true,
-        premium_until: expirationDate,
-        updated_at: new Date().toISOString()
-      };
+      const { error: subError } = await supabase
+        .from('subscriptions')
+        .upsert(subscriptionData, {
+          onConflict: 'user_id,platform'
+        });
 
-      // Appeler l'Edge Function sécurisée
-      const { data, error: functionError } = await supabase.functions.invoke('save-subscription', {
-        body: {
-          subscriptionData,
-          profileData
-        },
-        headers: {
-          Authorization: `Bearer ${session.data.session.access_token}`
-        }
-      });
-
-      if (functionError) {
-        console.error('❌ Erreur Edge Function:', functionError);
-        throw functionError;
+      if (subError) {
+        console.error('❌ Erreur sauvegarde subscription:', subError);
+        throw subError;
       }
 
-      // Fallback: activer premium via RPC si Edge Function échoue
-      const { error: rpcError } = await supabase.rpc('activate_premium', {
-        user_id_param: userId,
-        months: Math.max(1, Math.ceil(daysUntilExpiry / 30))
-      });
+      console.log('✅ Subscription sauvegardée avec succès');
 
-      if (rpcError) {
-        console.error('❌ Erreur activation premium via RPC:', rpcError);
-        // Fallback : UPDATE direct si RPC échoue
-        const { error: fallbackError } = await supabase
-          .from('profiles')
-          .update({
-            is_premium: true,
-            premium_until: expirationDate,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', userId);
-        
-        if (fallbackError) {
-          console.error('❌ Erreur fallback UPDATE:', fallbackError);
-          throw fallbackError;
-        }
-        console.log('✅ Premium activé via fallback UPDATE');
-      } else {
-        console.log('✅ Premium activé via RPC pour user:', userId, 'jusqu\'au', expirationDate);
+      // ✅ UPDATE PROFILE
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          is_premium: true,
+          premium_until: expirationDate,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+      if (profileError) {
+        console.error('❌ Erreur update profile:', profileError);
+        throw profileError;
       }
+
+      console.log('✅ Profile premium activé');
+
+      return true;
     } catch (error) {
       console.error('❌ Erreur sauvegarde Supabase:', error);
       throw error;

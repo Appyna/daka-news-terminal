@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.app.dakanews",
-      "buildNumber": "9",
+      "buildNumber": "10",
       "infoPlist": {
         "NSUserTrackingUsageDescription": "Cette app utilise des données pour personnaliser votre expérience et améliorer nos services.",
         "NSLocationWhenInUseUsageDescription": "Nous utilisons votre localisation pour vous proposer des actualités pertinentes.",
