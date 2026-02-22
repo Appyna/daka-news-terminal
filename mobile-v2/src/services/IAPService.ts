@@ -177,6 +177,20 @@ class IAPService {
       // Sauvegarder dans subscriptions table
       const firstSubscriptionKey = activeSubscriptions[0];
       
+      // ✅ Récupérer le vrai transaction ID depuis customerInfo
+      let transactionId = customerInfo.originalAppUserId; // Fallback
+      
+      // Pour iOS, essayer de récupérer le dernier transaction ID
+      if (Platform.OS === 'ios' && customerInfo.nonSubscriptionTransactions.length > 0) {
+        // Prendre le dernier purchase
+        const lastTransaction = customerInfo.nonSubscriptionTransactions[customerInfo.nonSubscriptionTransactions.length - 1];
+        transactionId = lastTransaction.transactionIdentifier || transactionId;
+      } else if (firstSubscriptionKey && firstSubscriptionKey !== '0') {
+        transactionId = firstSubscriptionKey;
+      }
+      
+      console.log('🔑 Transaction ID pour Supabase:', transactionId);
+      
       // ✅ CORRECTION : Utiliser les bonnes colonnes selon la plateforme
       const subscriptionData: any = {
         user_id: userId,
@@ -189,35 +203,81 @@ class IAPService {
       
       // Ajouter la colonne spécifique à la plateforme
       if (Platform.OS === 'ios') {
-        subscriptionData.apple_transaction_id = firstSubscriptionKey || customerInfo.originalAppUserId;
+        subscriptionData.apple_transaction_id = transactionId;
       } else {
-        subscriptionData.google_purchase_token = firstSubscriptionKey || customerInfo.originalAppUserId;
+        subscriptionData.google_purchase_token = transactionId;
       }
       
-      // ✅ FIX : INSERT simple au lieu de UPSERT (pas de contrainte unique sur user_id,platform)
-      const { error: subError } = await supabase
+      // ✅ VÉRIFIER SI SUBSCRIPTION EXISTE DÉJÀ (éviter duplicatas)
+      const { data: existingSub } = await supabase
         .from('subscriptions')
-        .insert(subscriptionData);
+        .select('id')
+        .eq('user_id', userId)
+        .eq('platform', Platform.OS === 'ios' ? 'apple' : 'google')
+        .eq('status', 'active')
+        .single();
 
-      if (subError) {
-        console.error('❌ Erreur sauvegarde subscription:', subError);
-        throw subError;
+      if (existingSub) {
+        console.log('ℹ️ Subscription déjà existante, skip insertion');
+        // Juste update le profile
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            is_premium: true,
+            premium_until: expirationDate,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId);
+
+        if (updateError) {
+          console.error('❌ Erreur update profile:', updateError);
+        }
+        
+        return true; // Succès même si déjà existant
       }
 
-      // ✅ Utiliser la fonction RPC pour cohérence avec backend webhooks
-      // Calculer le nombre de jours jusqu'à expiration
+      // ✅ APPEL EDGE FUNCTION CÔTÉ SERVEUR (bypass RLS avec service_role)
+      const session = await supabase.auth.getSession();
+      if (!session.data.session) {
+        throw new Error('Session non trouvée');
+      }
+
+      // Calculer le nombre de jours jusqu'à expiration pour RPC
       const now = new Date();
       const expiryDate = new Date(expirationDate);
       const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       
-      // Activer premium via RPC (même méthode que webhooks Stripe/Apple/Google)
-      const { error: profileError } = await supabase.rpc('activate_premium', {
-        user_id_param: userId,
-        months: Math.max(1, Math.ceil(daysUntilExpiry / 30)) // Convertir jours en mois
+      const profileData = {
+        id: userId,
+        is_premium: true,
+        premium_until: expirationDate,
+        updated_at: new Date().toISOString()
+      };
+
+      // Appeler l'Edge Function sécurisée
+      const { data, error: functionError } = await supabase.functions.invoke('save-subscription', {
+        body: {
+          subscriptionData,
+          profileData
+        },
+        headers: {
+          Authorization: `Bearer ${session.data.session.access_token}`
+        }
       });
 
-      if (profileError) {
-        console.error('❌ Erreur activation premium via RPC:', profileError);
+      if (functionError) {
+        console.error('❌ Erreur Edge Function:', functionError);
+        throw functionError;
+      }
+
+      // Fallback: activer premium via RPC si Edge Function échoue
+      const { error: rpcError } = await supabase.rpc('activate_premium', {
+        user_id_param: userId,
+        months: Math.max(1, Math.ceil(daysUntilExpiry / 30))
+      });
+
+      if (rpcError) {
+        console.error('❌ Erreur activation premium via RPC:', rpcError);
         // Fallback : UPDATE direct si RPC échoue
         const { error: fallbackError } = await supabase
           .from('profiles')

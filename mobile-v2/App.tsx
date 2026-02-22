@@ -206,24 +206,40 @@ function MainApp() {
     if (!user) return;
 
     try {
-      const { data: sub } = await supabase
+      console.log('🔧 Gestion abonnement - User ID:', user.id);
+      
+      const { data: sub, error: subError } = await supabase
         .from('subscriptions')
         .select('platform')
         .eq('user_id', user.id)
         .eq('status', 'active')
         .single();
 
+      console.log('🔍 Subscription data:', sub);
+      console.log('🔍 Subscription error:', subError);
+
       const platform = sub?.platform || 'stripe';
+      console.log('📱 Platform détectée:', platform);
 
       if (platform === 'stripe') {
         Alert.alert('Info', 'Gestion disponible sur web');
       } else if (platform === 'apple') {
-        Linking.openURL('https://apps.apple.com/account/subscriptions');
+        console.log('🍎 Ouverture réglages iOS...');
+        const url = 'https://apps.apple.com/account/subscriptions';
+        const canOpen = await Linking.canOpenURL(url);
+        console.log('🔗 Can open URL?', canOpen);
+        
+        if (canOpen) {
+          await Linking.openURL(url);
+          console.log('✅ URL ouverte');
+        } else {
+          Alert.alert('Erreur', 'Impossible d\'ouvrir les réglages');
+        }
       } else if (platform === 'google') {
         Linking.openURL('https://play.google.com/store/account/subscriptions');
       }
     } catch (error) {
-      console.error('Error managing subscription:', error);
+      console.error('❌ Error managing subscription:', error);
       Alert.alert('Erreur', 'Impossible d\'ouvrir la page de gestion');
     }
   };
