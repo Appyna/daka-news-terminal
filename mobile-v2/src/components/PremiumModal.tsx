@@ -113,30 +113,30 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
     try {
       if (Platform.OS === 'ios' || Platform.OS === 'android') {
         // Utiliser l'IAP natif sur mobile
-        console.log('💳 Lancement IAP natif...');
         const success = await iapService.purchasePremium(user.id);
         if (success) {
-          // ✅ Forcer le rechargement du profil après achat
-          setTimeout(async () => {
-            await iapService.syncPremiumStatusOnStartup(user.id);
+          // ✅ Forcer la synchronisation immédiate du profil
+          await iapService.syncPremiumStatusOnStartup(user.id);
+          
+          // Fermer le modal et afficher succès
+          onClose();
+          
+          setTimeout(() => {
             Alert.alert(
-              'Succès',
-              'Votre abonnement Premium a été activé ! Redémarrez l\'app pour voir vos sources premium.',
-              [{ text: 'OK', onPress: onClose }]
+              '🎉 Abonnement activé !',
+              'Vous avez maintenant accès à toutes les sources premium. Rechargez les flux pour voir vos nouvelles sources.',
+              [{ text: 'OK' }]
             );
-          }, 2000); // Attendre 2s pour laisser RevenueCat traiter
-          console.log('✅ Abonnement Premium activé');
+          }, 500);
         }
       } else {
         // Stripe web pour le web
-        console.log('💳 Lancement Stripe checkout (web)...');
         const response = await apiService.createStripeCheckoutSession(user.id, profile.email);
         Linking.openURL(response.url);
-        console.log('✅ Redirection vers Stripe checkout');
       }
     } catch (err) {
-      console.error('❌ Erreur paiement:', err);
-      Alert.alert('Erreur', err.message || 'Impossible de finaliser le paiement. Réessayez plus tard.');
+      const errorMessage = err instanceof Error ? err.message : 'Impossible de finaliser le paiement. Réessayez plus tard.';
+      Alert.alert('Erreur', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -260,29 +260,6 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
                       )}
                       <Text style={styles.ctaText}>Accéder en illimité</Text>
                     </View>
-                  </Pressable>
-                  
-                  {/* ✅ BOUTON RESTAURER pour synchroniser l'abonnement existant */}
-                  <Pressable 
-                    style={styles.restoreButton} 
-                    onPress={async () => {
-                      try {
-                        setLoading(true);
-                        const restored = await iapService.restorePurchases(user.id);
-                        if (restored) {
-                          Alert.alert('Succès', 'Votre abonnement a été restauré !', [
-                            { text: 'OK', onPress: onClose }
-                          ]);
-                        }
-                      } catch (err) {
-                        console.error('❌ Erreur restore:', err);
-                      } finally {
-                        setLoading(false);
-                      }
-                    }}
-                    disabled={loading}
-                  >
-                    <Text style={styles.restoreText}>Restaurer mes achats</Text>
                   </Pressable>
                 </>
               ) : (
