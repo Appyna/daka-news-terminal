@@ -1,95 +1,54 @@
 /**
- * Hook useNLLBModel - Gestion téléchargement et état modèle NLLB
+ * Hook useMLKitModel - Gestion état ML Kit Translation
  * 
- * Gère :
- * - Téléchargement automatique au lancement app
- * - État du téléchargement (progress, erreurs)
- * - Cache permanent du modèle
+ * Note: ML Kit télécharge les modèles automatiquement au premier usage
+ * Ce hook sert juste à afficher l'état à l'utilisateur
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { initializeNLLB, isNLLBModelCached } from '../services/nllbService';
+import { initializeMLKit } from '../services/nllbService';
 
-export interface NLLBModelState {
+export interface MLKitModelState {
   isModelReady: boolean;
   isDownloading: boolean;
   downloadProgress: number; // 0-100
   error: string | null;
-  downloadModel: () => Promise<void>;
   retryDownload: () => Promise<void>;
 }
 
-export function useNLLBModel(): NLLBModelState {
-  const [isModelReady, setIsModelReady] = useState(false);
+export function useNLLBModel(): MLKitModelState {
+  const [isModelReady, setIsModelReady] = useState(true); // Toujours prêt (téléchargement auto)
   const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [downloadProgress, setDownloadProgress] = useState(100); // 100% car auto
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Télécharge et initialise le modèle NLLB
-   */
-  const downloadModel = useCallback(async () => {
-    // Si déjà en cours ou prêt, ne rien faire
-    if (isDownloading || isModelReady) {
-      return;
-    }
-
-    setIsDownloading(true);
-    setError(null);
-    setDownloadProgress(0);
-
-    try {
-      // Simuler progression (Transformers.js ne donne pas de vraie progression)
-      const progressInterval = setInterval(() => {
-        setDownloadProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 2000);
-
-      // Initialiser NLLB (télécharge le modèle si nécessaire)
-      await initializeNLLB();
-
-      // Téléchargement terminé
-      clearInterval(progressInterval);
-      setDownloadProgress(100);
-      setIsModelReady(true);
-      setIsDownloading(false);
-
-      console.log('✅ NLLB model ready for use');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur téléchargement');
-      setIsDownloading(false);
-      setDownloadProgress(0);
-      console.error('❌ Failed to download NLLB model:', err);
-    }
-  }, [isDownloading, isModelReady]);
-
-  /**
-   * Retry téléchargement en cas d'erreur
-   */
-  const retryDownload = useCallback(async () => {
-    setError(null);
-    setDownloadProgress(0);
-    await downloadModel();
-  }, [downloadModel]);
-
-  /**
-   * Vérifier au mount si modèle déjà en cache
+   * Initialise ML Kit au mount
    */
   useEffect(() => {
-    const checkCache = () => {
-      if (isNLLBModelCached()) {
-        setIsModelReady(true);
-        setDownloadProgress(100);
-        console.log('✅ NLLB model already cached');
+    const init = async () => {
+      try {
+        await initializeMLKit();
+        console.log('✅ ML Kit initialized (models will download on first use)');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erreur initialisation');
+        console.error('❌ Failed to initialize ML Kit:', err);
       }
     };
 
-    checkCache();
+    init();
+  }, []);
+
+  /**
+   * Retry en cas d'erreur
+   */
+  const retryDownload = useCallback(async () => {
+    setError(null);
+    try {
+      await initializeMLKit();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur initialisation');
+    }
   }, []);
 
   return {
@@ -97,7 +56,6 @@ export function useNLLBModel(): NLLBModelState {
     isDownloading,
     downloadProgress,
     error,
-    downloadModel,
     retryDownload,
   };
 }

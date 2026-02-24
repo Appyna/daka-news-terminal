@@ -34,22 +34,8 @@ function MainApp() {
   const [premiumModalVisible, setPremiumModalVisible] = useState(false);
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 
-  // 🌐 Hook NLLB pour traduction on-device
-  const { isDownloading, downloadProgress, downloadModel } = useNLLBModel();
-
-  // 🌐 Télécharger modèle NLLB en background au lancement
-  useEffect(() => {
-    const initNLLB = async () => {
-      try {
-        await downloadModel();
-      } catch (err) {
-        console.error('❌ Erreur init NLLB:', err);
-      }
-    };
-
-    // Délai 1 sec pour ne pas bloquer le rendu initial
-    setTimeout(initNLLB, 1000);
-  }, []);
+  // 🌐 Hook ML Kit pour traduction on-device (téléchargement auto des modèles)
+  const { isDownloading, downloadProgress } = useNLLBModel();
 
   // ✅ Initialiser IAP et synchroniser le statut premium au démarrage
   useEffect(() => {

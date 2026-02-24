@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { COLORS } from '../constants';
-import { translateWithNLLB } from '../services/nllbService';
+import { translateWithMLKit } from '../services/nllbService';
 import { applyTranslationRules } from '../services/translationRules';
 import { useNLLBModel } from '../hooks/useNLLBModel';
 
@@ -129,12 +129,12 @@ export const ArticleWebView: React.FC<ArticleWebViewProps> = ({
         throw new Error('Impossible d\'extraire le texte de l\'article');
       }
 
-      // 2. Traduire avec NLLB selon la catégorie
+      // 2. Traduire avec ML Kit selon la catégorie
       let rawTranslation: string;
       if (category === 'Israel') {
-        rawTranslation = await translateWithNLLB(pageText, 'he', 'fr');
+        rawTranslation = await translateWithMLKit(pageText, 'he', 'fr');
       } else if (category === 'Monde') {
-        rawTranslation = await translateWithNLLB(pageText, 'en', 'fr');
+        rawTranslation = await translateWithMLKit(pageText, 'en', 'fr');
       } else {
         throw new Error('Catégorie non supportée pour traduction');
       }
