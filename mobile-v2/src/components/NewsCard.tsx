@@ -140,7 +140,6 @@ const NewsCardComponent: React.FC<NewsCardProps> = ({ article, isFocused, onPres
       <ArticleWebView
         visible={webViewVisible}
         url={article.link}
-        category={article.category}
         onClose={() => setWebViewVisible(false)}
       />
     </Pressable>

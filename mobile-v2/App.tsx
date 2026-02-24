@@ -18,7 +18,6 @@ import { COLORS, FREE_SOURCES } from './src/constants';
 import { registerForPushNotifications, addNotificationReceivedListener, addNotificationResponseReceivedListener } from './src/services/notificationService';
 import Constants from 'expo-constants';
 import { supabase } from './src/services/supabaseClient';
-import { useNLLBModel } from './src/hooks/useNLLBModel';
 
 function MainApp() {
   const { user, profile, isPremium, loading: authLoading } = useAuth();
@@ -34,14 +33,12 @@ function MainApp() {
   const [premiumModalVisible, setPremiumModalVisible] = useState(false);
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 
-  // 🌐 Hook ML Kit pour traduction on-device (téléchargement auto des modèles)
-  const { isDownloading, downloadProgress } = useNLLBModel();
-
   // ✅ Initialiser IAP et synchroniser le statut premium au démarrage
   useEffect(() => {
     const initIAPAndSync = async () => {
       try {
         await iapService.initialize();
+        console.log('✅ IAP initialisé');
 
         // Si utilisateur connecté, vérifier et synchroniser le statut premium
         if (user?.id) {
@@ -104,6 +101,7 @@ function MainApp() {
       });
 
     const receivedListener = addNotificationReceivedListener(notification => {
+      console.log('🔔 Notification reçue:', notification);
       Alert.alert(
         notification.request.content.title || 'Notification',
         notification.request.content.body || '',
@@ -112,7 +110,7 @@ function MainApp() {
     });
 
     const responseListener = addNotificationResponseReceivedListener(() => {
-      // Notification cliquée - action si nécessaire
+      console.log('👆 Notification cliquée');
     });
 
     return () => {
@@ -208,6 +206,8 @@ function MainApp() {
     if (!user) return;
 
     try {
+      console.log('🔧 Gestion abonnement - User ID:', user.id);
+      
       const { data: sub, error: subError } = await supabase
         .from('subscriptions')
         .select('platform')
@@ -215,16 +215,23 @@ function MainApp() {
         .eq('status', 'active')
         .single();
 
+      console.log('🔍 Subscription data:', sub);
+      console.log('🔍 Subscription error:', subError);
+
       const platform = sub?.platform || 'stripe';
+      console.log('📱 Platform détectée:', platform);
 
       if (platform === 'stripe') {
         Alert.alert('Info', 'Gestion disponible sur web');
       } else if (platform === 'apple') {
+        console.log('🍎 Ouverture réglages iOS...');
         const url = 'https://apps.apple.com/account/subscriptions';
         const canOpen = await Linking.canOpenURL(url);
+        console.log('🔗 Can open URL?', canOpen);
         
         if (canOpen) {
           await Linking.openURL(url);
+          console.log('✅ URL ouverte');
         } else {
           Alert.alert('Erreur', 'Impossible d\'ouvrir les réglages');
         }
@@ -279,23 +286,6 @@ function MainApp() {
         />
       </View>
 
-      {/* 🌐 Toast téléchargement NLLB (discret en bas) */}
-      {isDownloading && (
-        <View style={styles.nllbToast}>
-          <Text style={styles.nllbToastText}>
-            Téléchargement traduction en cours... {downloadProgress}%
-          </Text>
-          <View style={styles.nllbProgressBar}>
-            <View 
-              style={[
-                styles.nllbProgressFill, 
-                { width: `${downloadProgress}%` }
-              ]} 
-            />
-          </View>
-        </View>
-      )}
-
       <AuthModal
         visible={authModalVisible}
         onClose={() => setAuthModalVisible(false)}
@@ -347,38 +337,8 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 52,
     fontWeight: '900',
-    color: COLORS.white,
-    letterSpacing: 2,
-  },
-  // 🌐 Toast téléchargement NLLB
-  nllbToast: {
-    position: 'absolute',
-    bottom: 16,
-    left: '10%',
-    width: '80%',
-    backgroundColor: COLORS.dark2,
-    opacity: 0.95,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(245, 197, 24, 0.3)',
-    padding: 12,
-    zIndex: 1000,
-  },
-  nllbToastText: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  nllbProgressBar: {
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  nllbProgressFill: {
-    height: '100%',
-    backgroundColor: COLORS.accentYellow1,
+    color: COLORS.accentYellow1,
+    letterSpacing: 6,
   },
   logoSubtext: {
     fontSize: 22,
