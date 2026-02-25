@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   View,
@@ -14,10 +14,37 @@ import { COLORS } from '../constants';
 interface ArticleWebViewProps {
   visible: boolean;
   url: string;
+  category: string;
   onClose: () => void;
 }
 
-export const ArticleWebView: React.FC<ArticleWebViewProps> = ({ visible, url, onClose }) => {
+export const ArticleWebView: React.FC<ArticleWebViewProps> = ({ visible, url, category, onClose }) => {
+  const [isTranslated, setIsTranslated] = useState(false);
+
+  // Déterminer la langue source selon la catégorie
+  const getSourceLanguage = () => {
+    if (category === 'Israel') return 'he'; // Hébreu
+    if (category === 'Monde') return 'en'; // Anglais
+    return null; // France = pas de traduction
+  };
+
+  const sourceLang = getSourceLanguage();
+  const shouldShowTranslateButton = sourceLang !== null;
+
+  // URL à afficher (originale ou traduite)
+  const displayUrl = isTranslated && sourceLang
+    ? `https://translate.google.com/translate?sl=${sourceLang}&tl=fr&u=${encodeURIComponent(url)}`
+    : url;
+
+  const handleToggleTranslation = () => {
+    setIsTranslated(!isTranslated);
+  };
+
+  // Reset translation state when modal closes
+  const handleClose = () => {
+    setIsTranslated(false);
+    onClose();
+  };
   return (
     <Modal
       visible={visible}
@@ -26,14 +53,29 @@ export const ArticleWebView: React.FC<ArticleWebViewProps> = ({ visible, url, on
     >
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
             <Text style={styles.closeText}>← Retour</Text>
           </TouchableOpacity>
+          
+          {shouldShowTranslateButton && (
+            <TouchableOpacity 
+              style={styles.translateButton} 
+              onPress={handleToggleTranslation}
+            >
+              <Text style={styles.translateMainText}>
+                {isTranslated ? 'Revenir à l\'original' : 'Traduire'}
+              </Text>
+              {!isTranslated && (
+                <Text style={styles.translateSubText}>Google Traduction</Text>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
         
         <WebView
-          source={{ uri: url }}
+          source={{ uri: displayUrl }}
           style={styles.webview}
+          key={displayUrl}
           startInLoadingState
           renderLoading={() => (
             <View style={styles.loading}>
@@ -57,6 +99,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.dark2,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)',
@@ -69,6 +112,25 @@ const styles = StyleSheet.create({
     color: COLORS.accentYellow1,
     fontSize: 16,
     fontWeight: '600',
+  },
+  translateButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: COLORS.accentYellow1,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  translateMainText: {
+    color: COLORS.accentYellow1,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  translateSubText: {
+    color: COLORS.accentYellow1,
+    fontSize: 10,
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   webview: {
     flex: 1,
