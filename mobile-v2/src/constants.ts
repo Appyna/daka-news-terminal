@@ -14,9 +14,9 @@ export const COLORS = {
  * IMPORTANT: Noms doivent matcher EXACTEMENT l'API /sources
  */
 export const FREE_SOURCES = [
-  "Ynet",                      // Israel
-  "France Info",               // France
-  "Reuters · AP | U.S. News"   // Monde
+  "Ynet",                     // Israel
+  "France Info",              // France
+  "ANADOLU (Agence turque)"   // Monde
 ];
 
 /**

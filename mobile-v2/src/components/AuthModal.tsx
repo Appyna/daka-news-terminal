@@ -131,14 +131,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onClose, redirect
       return;
     }
 
-    if (activeTab === 'signup' && !username) {
-      setError('Veuillez entrer un nom d\'utilisateur');
-      return;
-    }
+    if (activeTab === 'signup') {
+      if (!username) {
+        setError('Veuillez entrer un identifiant');
+        return;
+      }
 
-    if (activeTab === 'signup' && username.length < 3) {
-      setError('Le nom d\'utilisateur doit contenir au moins 3 caractères');
-      return;
+      // Validation longueur (3-10 caractères)
+      if (username.length < 3 || username.length > 10) {
+        setError('L\'identifiant doit contenir entre 3 et 10 caractères');
+        return;
+      }
+
+      // Validation caractères (uniquement lettres et chiffres, pas d'espaces)
+      const usernameRegex = /^[a-zA-Z0-9]+$/;
+      if (!usernameRegex.test(username)) {
+        setError('L\'identifiant ne peut contenir que des lettres et chiffres (pas d\'espaces ni caractères spéciaux)');
+        return;
+      }
     }
 
     if (password.length < 6) {
