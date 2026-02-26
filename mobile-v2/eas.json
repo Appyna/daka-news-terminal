@@ -17,11 +17,12 @@
       }
     },
     "production": {
+      "node": "20.19.4",
       "ios": {
         "buildConfiguration": "Release"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     }
   },
