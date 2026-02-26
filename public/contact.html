@@ -26,20 +26,27 @@
         .logo {
             margin-bottom: 60px;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
-        .logo-text {
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: 2px;
-        }
-        
-        .daka {
+        .logo-daka {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
             color: #FFFFFF;
         }
         
-        .news {
-            color: #F5C518;
+        .logo-news {
+            background: #F5C518;
+            color: #1A1838;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1;
         }
         
         .contact-box {
@@ -78,8 +85,12 @@
         }
         
         @media (max-width: 768px) {
-            .logo-text {
-                font-size: 28px;
+            .logo-daka {
+                font-size: 20px;
+            }
+            
+            .logo-news {
+                font-size: 11px;
             }
             
             .contact-box {
@@ -102,9 +113,8 @@
 </head>
 <body>
     <div class="logo">
-        <div class="logo-text">
-            <span class="daka">DAKA</span><span class="news">NEWS</span>
-        </div>
+        <span class="logo-daka">DAKA</span>
+        <span class="logo-news">NEWS</span>
     </div>
     
     <div class="contact-box">
