@@ -1,4 +1,10 @@
 {
+  "rewrites": [
+    {
+      "source": "/contact",
+      "destination": "/contact.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
