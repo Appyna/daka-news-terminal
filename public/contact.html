@@ -23,12 +23,19 @@
         }
         
         .logo {
-            margin-bottom: 80px;
             text-align: center;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+        }
+        
+        .content-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
         }
         
         .logo-daka {
@@ -86,11 +93,6 @@
         @media (max-width: 768px) {
             body {
                 padding: 20px;
-                justify-content: center;
-            }
-            
-            .logo {
-                margin-bottom: 50px;
             }
             
             .logo-daka {
@@ -126,13 +128,15 @@
         <span class="logo-news">NEWS</span>
     </div>
     
-    <div class="contact-box">
-        <h1>Contactez-nous</h1>
-        <p>
-            Une question, une proposition de partenariat ou un problème technique ?<br>
-            N'hésitez pas à nous contacter par e-mail à <a href="mailto:dakanews.app@gmail.com" class="email">dakanews.app@gmail.com</a>.<br>
-            Nous vous répondrons dans les plus brefs délais.
-        </p>
+    <div class="content-wrapper">
+        <div class="contact-box">
+            <h1>Contactez-nous</h1>
+            <p>
+                Une question, une proposition de partenariat ou un problème technique ?<br>
+                N'hésitez pas à nous contacter par e-mail à <a href="mailto:dakanews.app@gmail.com" class="email">dakanews.app@gmail.com</a>.<br>
+                Nous vous répondrons dans les plus brefs délais.
+            </p>
+        </div>
     </div>
 </body>
 </html>
