@@ -21,8 +21,8 @@ class IAPService {
       // Configuration RevenueCat avec votre API Key
       Purchases.configure({ 
         apiKey: Platform.OS === 'ios' 
-          ? 'appl_JzBGrniAoiIvnDUEGYdBakscCdq' // iOS API Key prod RevenueCat
-          : 'YOUR_GOOGLE_API_KEY' // À configurer plus tard pour Android
+          ? 'appl_JzBGrniAoiIvnDUEGYdBakscCdq' // ✅ iOS API Key prod RevenueCat
+          : 'ANDROID_API_KEY_TO_ADD' // ⚠️ À récupérer dans RevenueCat Dashboard → Projects → Google Play
       });
       
       console.log('✅ RevenueCat configuré');
