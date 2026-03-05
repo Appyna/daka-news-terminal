@@ -40,19 +40,54 @@ class IAPService {
   private async loadProducts(): Promise<void> {
     try {
       // Récupérer les offerings (packages) depuis RevenueCat
+      console.log('🔄 Chargement offerings RevenueCat...');
       const offerings = await Purchases.getOfferings();
       
+      console.log('📦 Offerings disponibles:', {
+        current: offerings.current?.identifier,
+        packagesCount: offerings.current?.availablePackages.length || 0,
+        allOfferingsIds: Object.keys(offerings.all)
+      });
+      
       if (!offerings.current || offerings.current.availablePackages.length === 0) {
-        console.warn('⚠️ Aucun offering disponible');
-        return;
+        console.warn('⚠️ Aucun offering disponible - Vérifiez RevenueCat Dashboard');
+        console.warn('⚠️ Offerings disponibles:', Object.keys(offerings.all));
+        throw new Error('Aucun offering configuré dans RevenueCat. Configurez un offering avec un package dans le Dashboard.');
       }
+
+      // Log tous les packages disponibles
+      console.log('📋 Packages disponibles:', 
+        offerings.current.availablePackages.map(pkg => ({
+          identifier: pkg.identifier,
+          productId: pkg.product.identifier,
+          price: pkg.product.priceString
+        }))
+      );
 
       // Récupérer le package mensuel (vous le configurerez dans RevenueCat dashboard)
       const monthlyPackage = offerings.current.availablePackages.find(
         (pkg: PurchasesPackage) => pkg.identifier === '$rc_monthly'
       );
 
-      if (monthlyPackage) {
+      if (!monthlyPackage) {
+        console.error('❌ Package $rc_monthly non trouvé!');
+        console.log('💡 Packages disponibles:', offerings.current.availablePackages.map(p => p.identifier));
+        // Fallback : prendre le premier package disponible
+        const firstPackage = offerings.current.availablePackages[0];
+        if (firstPackage) {
+          console.log('⚠️ Utilisation du premier package disponible:', firstPackage.identifier);
+          this.products = [{
+            productId: firstPackage.product.identifier,
+            title: firstPackage.product.title,
+            description: firstPackage.product.description,
+            price: firstPackage.product.priceString,
+            currency: firstPackage.product.currencyCode,
+          }];
+          console.log('✅ Produits RevenueCat chargés (fallback):', this.products);
+        } else {
+          throw new Error('Aucun package trouvé dans l\'offering');
+        }
+      } else {
         this.products = [{
           productId: monthlyPackage.product.identifier,
           title: monthlyPackage.product.title,
@@ -63,8 +98,11 @@ class IAPService {
 
         console.log('✅ Produits RevenueCat chargés:', this.products);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Erreur chargement produits RevenueCat:', error);
+      console.error('❌ Message:', error.message);
+      console.error('❌ Code:', error.code);
+      throw error;
     }
   }
 
@@ -91,28 +129,34 @@ class IAPService {
       }
 
       // Identifier l'utilisateur dans RevenueCat
+      console.log('👤 Login RevenueCat:', userId);
       await Purchases.logIn(userId);
 
       // Récupérer les offerings
+      console.log('📦 Récupération offerings...');
       const offerings = await Purchases.getOfferings();
       
       if (!offerings.current || offerings.current.availablePackages.length === 0) {
-        throw new Error('Aucun abonnement disponible');
+        throw new Error('Aucun abonnement disponible. Vérifiez que vous avez créé un Offering dans RevenueCat Dashboard avec au moins un produit.');
       }
 
-      // Récupérer le package mensuel
-      const monthlyPackage = offerings.current.availablePackages.find(
+      // Récupérer le package mensuel OU le premier disponible
+      let packageToPurchase = offerings.current.availablePackages.find(
         (pkg: PurchasesPackage) => pkg.identifier === '$rc_monthly'
       );
 
-      if (!monthlyPackage) {
-        throw new Error('Package mensuel non trouvé');
+      if (!packageToPurchase) {
+        console.warn('⚠️ Package $rc_monthly non trouvé, utilisation du premier package');
+        packageToPurchase = offerings.current.availablePackages[0];
+        if (!packageToPurchase) {
+          throw new Error('Aucun package disponible dans l\'offering');
+        }
       }
 
-      console.log(`🛒 Achat lancé pour: ${monthlyPackage.product.identifier}`);
+      console.log(`🛒 Achat lancé pour: ${packageToPurchase.product.identifier}`);
 
       // Lancer l'achat (StoreKit d'Apple s'ouvre ici - interface native)
-      const purchaseResult = await Purchases.purchasePackage(monthlyPackage);
+      const purchaseResult = await Purchases.purchasePackage(packageToPurchase);
 
       console.log('✅ Achat réussi:', purchaseResult);
 

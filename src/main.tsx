@@ -1,6 +1,9 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App'
+import { CGU } from './pages/CGU'
+import { Privacy } from './pages/Privacy'
 import { AuthProvider } from './contexts/AuthContext'
 import './styles.css'
 
@@ -24,7 +27,13 @@ if (type === 'recovery' && accessToken) {
 }
 
 createRoot(document.getElementById('root')!).render(
-  <AuthProvider>
-    <App />
-  </AuthProvider>
+  <BrowserRouter>
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<App />} />
+        <Route path="/cgu" element={<CGU />} />
+        <Route path="/privacy" element={<Privacy />} />
+      </Routes>
+    </AuthProvider>
+  </BrowserRouter>
 )

@@ -28,6 +28,36 @@ interface SourcesData {
   Monde: SourceItem[];
 }
 
+// ✅ SOURCES HARDCODÉES - Identiques à l'API
+const SOURCES_BY_COUNTRY: SourcesData = {
+  Israel: [
+    { name: "Ynet", color: "#FF6B6B", free_tier: true },
+    { name: "Arutz 7", color: "#4ECDC4", free_tier: false },
+    { name: "Arutz 14", color: "#95E1D3", free_tier: false },
+    { name: "Behadrei Haredim", color: "#F38181", free_tier: false },
+    { name: "Israel Hayom", color: "#AA96DA", free_tier: false },
+    { name: "JDN Hadachot", color: "#FCBAD3", free_tier: false },
+    { name: "Walla", color: "#FFD93D", free_tier: false },
+    { name: "Maariv", color: "#A8D8EA", free_tier: false }
+  ],
+  France: [
+    { name: "France Info", color: "#FF6B9D", free_tier: true },
+    { name: "Le Monde", color: "#1E3A8A", free_tier: false },
+    { name: "BFM TV", color: "#6BCB77", free_tier: false },
+    { name: "CNews", color: "#4D96FF", free_tier: false },
+    { name: "Dépêches AFP - Mediapart", color: "#FFD32D", free_tier: false },
+    { name: "France Bleu", color: "#0055A4", free_tier: false }
+  ],
+  Monde: [
+    { name: "ANADOLU (Agence turque)", color: "#E4A5FF", free_tier: true },
+    { name: "BBC News", color: "#BB2CD9", free_tier: false },
+    { name: "FOXNews", color: "#FFA62B", free_tier: false },
+    { name: "RT - Russie", color: "#FF5C8D", free_tier: false },
+    { name: "TASS (Agence russe)", color: "#6C5CE7", free_tier: false },
+    { name: "Reuters · AP | U.S. News", color: "#C0EEF2", free_tier: false }
+  ]
+};
+
 const LockIcon = () => (
   <Svg width={10} height={10} viewBox="0 0 12 16" fill={COLORS.accentYellow1}>
     <Path d="M10 5V3a4 4 0 00-8 0v2H1a1 1 0 00-1 1v9a1 1 0 001 1h10a1 1 0 001-1V6a1 1 0 00-1-1h-1zM4 3a2 2 0 114 0v2H4V3z" />
@@ -47,27 +77,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(-300)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
-  const [sources, setSources] = useState<SourcesData>({ Israel: [], France: [], Monde: [] });
-  const [loading, setLoading] = useState(true);
+  // ✅ Sources hardcodées - pas besoin de loading ou d'API call
+  const sources = SOURCES_BY_COUNTRY;
+  const [loading, setLoading] = useState(false); // Toujours false car hardcodé
 
-  // Charger les sources depuis l'API
-  useEffect(() => {
-    const loadSources = async () => {
-      try {
-        const response = await fetch('https://api.dakanews.com/api/sources');
-        const data = await response.json();
-        if (data.success) {
-          setSources(data.sources);
-        }
-      } catch (error) {
-        console.error('Erreur chargement sources:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadSources();
-  }, []);
+  // ✅ SUPPRIMÉ: useEffect pour charger depuis API - sources maintenant hardcodées
 
   useEffect(() => {
     if (visible) {

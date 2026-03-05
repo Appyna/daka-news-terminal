@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, PanResponder, Alert, Linking, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as TrackingTransparency from 'expo-tracking-transparency';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { TopBar } from './src/components/TopBar';
@@ -32,6 +33,53 @@ function MainApp() {
   const [authModalVisible, setAuthModalVisible] = useState(false);
   const [premiumModalVisible, setPremiumModalVisible] = useState(false);
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
+  const [hasRequestedTracking, setHasRequestedTracking] = useState(false);
+
+  // ✅ Demander ATT après que l'app soit chargée ET visible
+  useEffect(() => {
+    const requestTracking = async () => {
+      // Éviter les demandes multiples
+      if (hasRequestedTracking) return;
+      
+      try {
+        // 1. Vérifier d'abord le status actuel
+        const { status: currentStatus } = await TrackingTransparency.getTrackingPermissionsAsync();
+        console.log('📊 ATT Status actuel:', currentStatus);
+        
+        // Si déjà déterminé, ne pas redemander
+        if (currentStatus !== 'undetermined') {
+          console.log('✅ ATT déjà déterminé:', currentStatus);
+          setHasRequestedTracking(true);
+          return;
+        }
+        
+        // 2. Attendre que l'UI soit complètement stable
+        console.log('⏳ Attente 8 secondes pour stabilité UI...');
+        await new Promise(resolve => setTimeout(resolve, 8000));
+        
+        // 3. Demander la permission
+        console.log('🔔 Demande de permission ATT...');
+        const { status } = await TrackingTransparency.requestTrackingPermissionsAsync();
+        console.log('📊 ATT Status après demande:', status);
+        
+        setHasRequestedTracking(true);
+        
+        if (status === 'granted') {
+          console.log('✅ Tracking autorisé par l\'utilisateur');
+        } else {
+          console.log('❌ Tracking refusé par l\'utilisateur');
+        }
+      } catch (error) {
+        console.error('❌ Erreur ATT:', error);
+        setHasRequestedTracking(true); // Marquer comme tenté même en cas d'erreur
+      }
+    };
+
+    // Uniquement demander quand l'app est stable
+    if (!loading && !authLoading && !hasRequestedTracking) {
+      requestTracking();
+    }
+  }, [loading, authLoading, hasRequestedTracking]);
 
   // ✅ Initialiser IAP et synchroniser le statut premium au démarrage
   useEffect(() => {

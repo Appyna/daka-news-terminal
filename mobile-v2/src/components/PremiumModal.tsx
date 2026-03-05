@@ -267,6 +267,17 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ visible, onClose, wa
                   <Text style={styles.ctaText}>Accéder en illimité</Text>
                 </Pressable>
               )}
+
+              {/* 📋 Liens requis par Apple (Guideline 3.1.2c) */}
+              <View style={styles.legalLinks}>
+                <Pressable onPress={() => Linking.openURL('https://dakanews.com/privacy')}>
+                  <Text style={styles.legalText}>Politique de confidentialité</Text>
+                </Pressable>
+                <Text style={styles.legalSeparator}> • </Text>
+                <Pressable onPress={() => Linking.openURL('https://dakanews.com/cgu')}>
+                  <Text style={styles.legalText}>Conditions d'utilisation</Text>
+                </Pressable>
+              </View>
             </View>
 
             <Pressable style={styles.backButton} onPress={onClose}>
@@ -446,6 +457,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.7)',
     fontWeight: '500',
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    paddingHorizontal: 20,
+    flexWrap: 'wrap',
+  },
+  legalText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.5)',
+    textDecorationLine: 'underline',
+  },
+  legalSeparator: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.3)',
   },
   // Transition screen styles
   transitionContainer: {
