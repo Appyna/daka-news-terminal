@@ -13,7 +13,7 @@
       "destination": "/contact.html"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!app-ads\\.txt$).*)",
       "destination": "/index.html"
     }
   ],
