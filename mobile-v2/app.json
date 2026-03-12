@@ -17,6 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.app.dakanews",
       "buildNumber": "26",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "SKPaymentTransactionObserver": true,
