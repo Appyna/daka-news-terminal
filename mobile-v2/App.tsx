@@ -4,7 +4,7 @@ import { StyleSheet, View, PanResponder, Alert, Linking, Text } from 'react-nati
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as TrackingTransparency from 'expo-tracking-transparency';
 import mobileAds from 'react-native-google-mobile-ads';
-import * as Amplitude from '@amplitude/analytics-react-native';
+import { init, track } from '@amplitude/analytics-react-native';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { TopBar } from './src/components/TopBar';
@@ -53,17 +53,16 @@ function MainApp() {
 
   // ✅ Initialiser Amplitude Analytics et logger app_open
   useEffect(() => {
-    const initAnalytics = async () => {
+    const initAnalytics = () => {
       try {
-        // Initialisation non-bloquante sans await pour éviter les crashes au démarrage
-        Amplitude.init('8f63ff00db47ed0d87fd3e308c40239b')
-          .promise.then(() => {
-            Amplitude.track('app_open');
-            console.log('✅ Amplitude Analytics: app_open logged');
-          })
-          .catch((error) => {
-            console.warn('⚠️ Amplitude Analytics init failed:', error);
-          });
+        // Initialisation synchrone pour v1.5.46
+        init('8f63ff00db47ed0d87fd3e308c40239b', undefined, {
+          trackingOptions: {
+            ipAddress: false,
+          },
+        });
+        track('app_open');
+        console.log('✅ Amplitude Analytics initialized');
       } catch (error) {
         console.warn('⚠️ Amplitude Analytics error:', error);
       }
@@ -284,10 +283,14 @@ function MainApp() {
     setSidebarVisible(false);
     
     // ✅ Logger l'événement screen_view pour Amplitude Analytics
-    Amplitude.track('screen_view', {
-      source: sourceName,
-      country: country,
-    });
+    try {
+      track('screen_view', {
+        source: sourceName,
+        country: country,
+      });
+    } catch (error) {
+      console.warn('⚠️ Analytics track error:', error);
+    }
   };
 
   const handleManageSubscription = async () => {
