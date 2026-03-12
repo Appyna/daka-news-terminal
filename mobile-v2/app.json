@@ -17,7 +17,6 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.app.dakanews",
       "buildNumber": "26",
-      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "SKPaymentTransactionObserver": true,
@@ -52,20 +51,7 @@
           "sounds": []
         }
       ],
-      "expo-tracking-transparency",
-      "@react-native-firebase/app",
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "useFrameworks": "static",
-            "deploymentTarget": "15.1",
-            "extraPodspec": {
-              "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES"
-            }
-          }
-        }
-      ]
+      "expo-tracking-transparency"
     ],
     "extra": {
       "eas": {

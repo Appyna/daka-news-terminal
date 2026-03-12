@@ -4,7 +4,7 @@ import { StyleSheet, View, PanResponder, Alert, Linking, Text } from 'react-nati
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as TrackingTransparency from 'expo-tracking-transparency';
 import mobileAds from 'react-native-google-mobile-ads';
-import analytics from '@react-native-firebase/analytics';
+import * as Amplitude from '@amplitude/analytics-react-native';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { TopBar } from './src/components/TopBar';
@@ -51,14 +51,15 @@ function MainApp() {
       });
   }, []);
 
-  // ✅ Initialiser Firebase Analytics et logger app_open
+  // ✅ Initialiser Amplitude Analytics et logger app_open
   useEffect(() => {
     const initAnalytics = async () => {
       try {
-        await analytics().logAppOpen();
-        console.log('✅ Firebase Analytics: app_open logged');
+        await Amplitude.init('VOTRE_API_KEY_AMPLITUDE'); // TODO: Remplacer par la vraie clé
+        Amplitude.track('app_open');
+        console.log('✅ Amplitude Analytics: app_open logged');
       } catch (error) {
-        console.error('❌ Firebase Analytics error:', error);
+        console.error('❌ Amplitude Analytics error:', error);
       }
     };
     initAnalytics();
@@ -276,11 +277,11 @@ function MainApp() {
     setFocusedNewsId(null);
     setSidebarVisible(false);
     
-    // ✅ Logger l'événement screen_view pour Firebase Analytics
-    analytics().logScreenView({
-      screen_name: sourceName,
-      screen_class: country,
-    }).catch(err => console.error('Analytics error:', err));
+    // ✅ Logger l'événement screen_view pour Amplitude Analytics
+    Amplitude.track('screen_view', {
+      source: sourceName,
+      country: country,
+    });
   };
 
   const handleManageSubscription = async () => {
