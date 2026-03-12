@@ -4,7 +4,7 @@ import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads'
 
 const BANNER_AD_UNIT_ID = __DEV__ 
   ? TestIds.BANNER 
-  : 'ca-app-pub-9184646133625988/XXXXXX'; // Tu devras créer un bloc d'annonces bannière dans AdMob
+  : 'ca-app-pub-9184646133625988/5507405409';
 
 export const AdBanner: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);

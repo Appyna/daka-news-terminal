@@ -4,7 +4,7 @@ import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile
 
 const INTERSTITIAL_AD_UNIT_ID = __DEV__
   ? TestIds.INTERSTITIAL
-  : 'ca-app-pub-9184646133625988/YYYYYY'; // Tu devras créer un bloc d'annonces interstitielle dans AdMob
+  : 'ca-app-pub-9184646133625988/2386893406';
 
 let interstitial: InterstitialAd | null = null;
 let lastAdShown = 0;
