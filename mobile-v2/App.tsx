@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, PanResponder, Alert, Linking, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as TrackingTransparency from 'expo-tracking-transparency';
+import mobileAds from 'react-native-google-mobile-ads';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { TopBar } from './src/components/TopBar';
@@ -12,6 +13,8 @@ import { AuthModal } from './src/components/AuthModal';
 import { PremiumModal } from './src/components/PremiumModal';
 import { SettingsModal } from './src/components/SettingsModal';
 import { Logo } from './src/components/Logo';
+import { AdBanner } from './src/components/AdBanner';
+import { useInterstitialAds } from './src/services/AdService';
 import { apiService } from './src/services/apiService';
 import { iapService } from './src/services/IAPService';
 import { Article } from './src/types';
@@ -34,6 +37,21 @@ function MainApp() {
   const [premiumModalVisible, setPremiumModalVisible] = useState(false);
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [hasRequestedTracking, setHasRequestedTracking] = useState(false);
+
+  // ✅ Initialiser AdMob au démarrage
+  useEffect(() => {
+    mobileAds()
+      .initialize()
+      .then(adapterStatuses => {
+        console.log('✅ AdMob initialized:', adapterStatuses);
+      })
+      .catch(error => {
+        console.error('❌ AdMob initialization error:', error);
+      });
+  }, []);
+
+  // ✅ Activer les interstitielles automatiques
+  useInterstitialAds();
 
   // ✅ Demander ATT après que l'app soit chargée ET visible
   useEffect(() => {
@@ -333,6 +351,9 @@ function MainApp() {
           error={error}
         />
       </View>
+
+      {/* ✅ Bannière publicitaire en bas */}
+      <AdBanner />
 
       <AuthModal
         visible={authModalVisible}

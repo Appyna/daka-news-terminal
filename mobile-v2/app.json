@@ -16,11 +16,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.app.dakanews",
-      "buildNumber": "25",
+      "buildNumber": "26",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "SKPaymentTransactionObserver": true,
-        "NSUserTrackingUsageDescription": "Nous utilisons cette autorisation pour personnaliser votre expérience et améliorer nos services. Vos données restent privées et protégées conformément à notre politique de confidentialité."
+        "NSUserTrackingUsageDescription": "Nous utilisons cette autorisation pour personnaliser votre expérience et améliorer nos services. Vos données restent privées et protégées conformément à notre politique de confidentialité.",
+        "GADApplicationIdentifier": "ca-app-pub-9184646133625988~9578008828"
       }
     },
     "android": {

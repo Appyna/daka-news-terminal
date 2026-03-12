@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, Dimensions, Animated, RefreshControl 
 import { NewsCard } from './NewsCard';
 import { Article } from '../types';
 import { COLORS } from '../constants';
+import { showInterstitialAd } from '../services/AdService';
 
 interface NewsColumnProps {
   sourceName: string;
@@ -28,6 +29,7 @@ export const NewsColumn: React.FC<NewsColumnProps> = ({
   error = null,
 }) => {
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const previousSource = useRef(sourceName);
 
   // Transition fade lors changement de source
   useEffect(() => {
@@ -37,6 +39,13 @@ export const NewsColumn: React.FC<NewsColumnProps> = ({
       duration: 400,
       useNativeDriver: true,
     }).start();
+
+    // ✅ Afficher interstitielle quand l'utilisateur change de flux
+    if (previousSource.current !== sourceName) {
+      console.log('🔄 Changement de flux détecté:', previousSource.current, '→', sourceName);
+      showInterstitialAd();
+      previousSource.current = sourceName;
+    }
   }, [sourceName]);
 
   // Skeleton loader

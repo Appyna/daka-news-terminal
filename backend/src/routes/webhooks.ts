@@ -119,7 +119,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
           .from('subscriptions')
           .select('user_id')
           .eq('stripe_customer_id', customerId)
-          .single();
+          .maybeSingle();
 
         if (sub) {
           if (subscription.status === 'active') {

@@ -111,7 +111,7 @@ router.post('/google', express.json(), async (req, res) => {
       .from('subscriptions')
       .select('user_id')
       .eq('google_purchase_token', purchaseToken)
-      .single();
+      .maybeSingle();
 
     const userId = existingSub?.user_id;
 
