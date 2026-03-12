@@ -55,11 +55,17 @@ function MainApp() {
   useEffect(() => {
     const initAnalytics = async () => {
       try {
-        await Amplitude.init('8f63ff00db47ed0d87fd3e308c40239b').promise;
-        Amplitude.track('app_open');
-        console.log('✅ Amplitude Analytics: app_open logged');
+        // Initialisation non-bloquante sans await pour éviter les crashes au démarrage
+        Amplitude.init('8f63ff00db47ed0d87fd3e308c40239b')
+          .promise.then(() => {
+            Amplitude.track('app_open');
+            console.log('✅ Amplitude Analytics: app_open logged');
+          })
+          .catch((error) => {
+            console.warn('⚠️ Amplitude Analytics init failed:', error);
+          });
       } catch (error) {
-        console.error('❌ Amplitude Analytics error:', error);
+        console.warn('⚠️ Amplitude Analytics error:', error);
       }
     };
     initAnalytics();
