@@ -55,7 +55,7 @@ function MainApp() {
   useEffect(() => {
     const initAnalytics = async () => {
       try {
-        await Amplitude.init('VOTRE_API_KEY_AMPLITUDE'); // TODO: Remplacer par la vraie clé
+        await Amplitude.init('8f63ff00db47ed0d87fd3e308c40239b').promise;
         Amplitude.track('app_open');
         console.log('✅ Amplitude Analytics: app_open logged');
       } catch (error) {
