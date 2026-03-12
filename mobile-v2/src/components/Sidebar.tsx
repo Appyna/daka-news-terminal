@@ -124,13 +124,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleSourcePress = (country: string, sourceName: string, isFree: boolean) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const isLocked = !isPremium && !isFree;
-    if (isLocked) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      onPremiumPress();
-    } else {
-      onSelectFlux(country, sourceName);
-    }
+    // ✅ Build 26 : Toutes les sources sont accessibles gratuitement
+    onSelectFlux(country, sourceName);
   };
 
   return (
@@ -184,8 +179,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </View>
                   <View style={styles.sourcesContainer}>
                     {sourcesList.map((sourceItem: { name: string; free_tier: boolean }) => {
-                      const isLocked = !isPremium && !sourceItem.free_tier;
                       const isActive = currentCountry === country && currentSource === sourceItem.name;
+                      // ✅ Build 26 : Plus de cadenas, toutes sources accessibles
 
                       return (
                         <Pressable
@@ -197,17 +192,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             style={[
                               styles.sourceText,
                               isActive && styles.sourceTextActive,
-                              isLocked && styles.sourceTextLocked,
                             ]}
                             numberOfLines={1}
                           >
                             · {sourceItem.name}
                           </Text>
-                          {isLocked && (
-                            <View style={styles.lockIconContainer}>
-                              <LockIcon />
-                            </View>
-                          )}
                         </Pressable>
                       );
                     })}

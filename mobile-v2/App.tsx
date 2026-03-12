@@ -4,6 +4,7 @@ import { StyleSheet, View, PanResponder, Alert, Linking, Text } from 'react-nati
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as TrackingTransparency from 'expo-tracking-transparency';
 import mobileAds from 'react-native-google-mobile-ads';
+import analytics from '@react-native-firebase/analytics';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { TopBar } from './src/components/TopBar';
@@ -48,6 +49,19 @@ function MainApp() {
       .catch(error => {
         console.error('❌ AdMob initialization error:', error);
       });
+  }, []);
+
+  // ✅ Initialiser Firebase Analytics et logger app_open
+  useEffect(() => {
+    const initAnalytics = async () => {
+      try {
+        await analytics().logAppOpen();
+        console.log('✅ Firebase Analytics: app_open logged');
+      } catch (error) {
+        console.error('❌ Firebase Analytics error:', error);
+      }
+    };
+    initAnalytics();
   }, []);
 
   // ✅ Activer les interstitielles automatiques
@@ -227,8 +241,8 @@ function MainApp() {
     } catch (error: any) {
       console.error(`Error loading ${sourceName}:`, error);
       const errorMsg = error.message === 'Request timeout' 
-        ? 'La requête a expiré. Vérifiez votre connexion.'
-        : 'Impossible de charger les articles. Vérifiez votre connexion.';
+        ? 'La requête a expiré. Glissez vers le bas pour actualiser ou vérifiez votre connexion.'
+        : 'Impossible de charger les articles. Glissez vers le bas pour actualiser ou vérifiez votre connexion.';
       setError(errorMsg);
       setArticles([]);
       
@@ -256,16 +270,17 @@ function MainApp() {
   };
 
   const handleSelectFlux = (country: string, sourceName: string) => {
-    const isFree = FREE_SOURCES.includes(sourceName);
-    if (!isFree && !isPremium) {
-      setPremiumModalVisible(true);
-      setSidebarVisible(false);
-    } else {
-      setCurrentCountry(country);
-      setCurrentSource(sourceName);
-      setFocusedNewsId(null);
-      setSidebarVisible(false);
-    }
+    // ✅ Build 26 : Toutes les sources sont accessibles gratuitement
+    setCurrentCountry(country);
+    setCurrentSource(sourceName);
+    setFocusedNewsId(null);
+    setSidebarVisible(false);
+    
+    // ✅ Logger l'événement screen_view pour Firebase Analytics
+    analytics().logScreenView({
+      screen_name: sourceName,
+      screen_class: country,
+    }).catch(err => console.error('Analytics error:', err));
   };
 
   const handleManageSubscription = async () => {

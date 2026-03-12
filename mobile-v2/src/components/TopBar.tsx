@@ -45,6 +45,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>{initials}</Text>
                 </View>
+                {/* ✅ Build 26 : Badge premium caché (app gratuite)
                 {isPremium && (
                   <View style={styles.premiumBadge}>
                     <Svg width={14} height={14} viewBox="0 0 24 24" fill={COLORS.accentYellow1}>
@@ -52,6 +53,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                     </Svg>
                   </View>
                 )}
+                */}
               </Pressable>
             ) : (
               <Pressable onPress={onAuthPress} style={styles.avatarButton}>
@@ -71,6 +73,7 @@ export const TopBar: React.FC<TopBarProps> = ({
         <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
           <View style={styles.dropdownPositioner}>
             <View style={styles.dropdown}>
+              {/* ✅ Build 26 : Bouton premium caché (app gratuite)
               <Pressable
                 onPress={() => {
                   setMenuVisible(false);
@@ -83,6 +86,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 </Text>
               </Pressable>
               <View style={styles.separator} />
+              */}
               <Pressable
                 onPress={() => {
                   setMenuVisible(false);
