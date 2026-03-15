@@ -4,7 +4,7 @@ import { StyleSheet, View, PanResponder, Alert, Linking, Text } from 'react-nati
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as TrackingTransparency from 'expo-tracking-transparency';
 import mobileAds from 'react-native-google-mobile-ads';
-// import { init, track } from '@amplitude/analytics-react-native'; // ⚠️ DÉSACTIVÉ TEMPORAIREMENT POUR DEBUG
+import { init, track } from '@amplitude/analytics-react-native';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { TopBar } from './src/components/TopBar';
@@ -51,24 +51,24 @@ function MainApp() {
       });
   }, []);
 
-  // ⚠️ AMPLITUDE DÉSACTIVÉ TEMPORAIREMENT POUR DEBUG
-  // useEffect(() => {
-  //   const initAnalytics = () => {
-  //     try {
-  //       // Initialisation synchrone pour v1.5.46
-  //       init('8f63ff00db47ed0d87fd3e308c40239b', undefined, {
-  //         trackingOptions: {
-  //           ipAddress: false,
-  //         },
-  //       });
-  //       track('app_open');
-  //       console.log('✅ Amplitude Analytics initialized');
-  //     } catch (error) {
-  //       console.warn('⚠️ Amplitude Analytics error:', error);
-  //     }
-  //   };
-  //   initAnalytics();
-  // }, []);
+  // ✅ Initialiser Amplitude Analytics et logger app_open
+  useEffect(() => {
+    const initAnalytics = () => {
+      try {
+        // Initialisation synchrone pour v1.5.46
+        init('8f63ff00db47ed0d87fd3e308c40239b', undefined, {
+          trackingOptions: {
+            ipAddress: false,
+          },
+        });
+        track('app_open');
+        console.log('✅ Amplitude Analytics initialized');
+      } catch (error) {
+        console.warn('⚠️ Amplitude Analytics error:', error);
+      }
+    };
+    initAnalytics();
+  }, []);
 
   // ✅ Activer les interstitielles automatiques
   useInterstitialAds();
@@ -282,15 +282,15 @@ function MainApp() {
     setFocusedNewsId(null);
     setSidebarVisible(false);
     
-    // ⚠️ AMPLITUDE DÉSACTIVÉ TEMPORAIREMENT POUR DEBUG
-    // try {
-    //   track('screen_view', {
-    //     source: sourceName,
-    //     country: country,
-    //   });
-    // } catch (error) {
-    //   console.warn('⚠️ Analytics track error:', error);
-    // }
+    // ✅ Logger l'événement screen_view pour Amplitude Analytics
+    try {
+      track('screen_view', {
+        source: sourceName,
+        country: country,
+      });
+    } catch (error) {
+      console.warn('⚠️ Analytics track error:', error);
+    }
   };
 
   const handleManageSubscription = async () => {
