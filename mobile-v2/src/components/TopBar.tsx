@@ -38,47 +38,12 @@ export const TopBar: React.FC<TopBarProps> = ({
             <Logo />
           </View>
 
-          {/* Avatar rond */}
-          <View style={styles.rightSection}>
-            {user ? (
-              <Pressable onPress={() => setMenuVisible(!menuVisible)} style={styles.avatarButton}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{initials}</Text>
-                </View>
-                {/* ✅ Build 26: Badge premium caché (app gratuite) */}
-              </Pressable>
-            ) : (
-              <Pressable onPress={onAuthPress} style={styles.avatarButton}>
-                <View style={[styles.avatar, styles.avatarGuest]}>
-                  <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth={2}>
-                    <Path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </Svg>
-                </View>
-              </Pressable>
-            )}
-          </View>
+          {/* ✅ Build 26: Avatar retiré - app 100% gratuite sans connexion */}
+          <View style={styles.rightSection} />
         </View>
       </SafeAreaView>
 
-      {/* Modal dropdown */}
-      <Modal visible={user !== null && menuVisible} transparent animationType="none" onRequestClose={() => setMenuVisible(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
-          <View style={styles.dropdownPositioner}>
-            <View style={styles.dropdown}>
-              {/* ✅ Build 26: Bouton premium caché (app gratuite) */}
-              <Pressable
-                onPress={() => {
-                  setMenuVisible(false);
-                  signOut();
-                }}
-                style={styles.dropdownItem}
-              >
-                <Text style={[styles.dropdownText, { color: '#f87171' }]}>Déconnexion</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Pressable>
-      </Modal>
+      {/* ✅ Build 26: Modal dropdown retirée - pas de connexion nécessaire */}
     </>
   );
 };
