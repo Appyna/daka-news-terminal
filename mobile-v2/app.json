@@ -58,10 +58,10 @@
         "projectId": "72f67e44-ecbe-4df7-95c9-f00dd7204d90"
       }
     },
-    "react-native-google-mobile-ads": {
-      "ios_app_id": "ca-app-pub-9184646133625988~9578008828",
-      "android_app_id": "ca-app-pub-9184646133625988~9578008828"
-    },
     "owner": "gabriel26-91"
+  },
+  "react-native-google-mobile-ads": {
+    "ios_app_id": "ca-app-pub-9184646133625988~9578008828",
+    "android_app_id": "ca-app-pub-9184646133625988~9578008828"
   }
 }
