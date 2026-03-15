@@ -51,14 +51,7 @@
           "sounds": []
         }
       ],
-      "expo-tracking-transparency",
-      [
-        "react-native-google-mobile-ads",
-        {
-          "android_app_id": "ca-app-pub-9184646133625988~9578008828",
-          "ios_app_id": "ca-app-pub-9184646133625988~9578008828"
-        }
-      ]
+      "expo-tracking-transparency"
     ],
     "extra": {
       "eas": {
