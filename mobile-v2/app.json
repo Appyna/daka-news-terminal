@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.app.dakanews",
-      "buildNumber": "30",
+      "buildNumber": "32",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "SKPaymentTransactionObserver": true,
@@ -51,7 +51,14 @@
           "sounds": []
         }
       ],
-      "expo-tracking-transparency"
+      "expo-tracking-transparency",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "android_app_id": "ca-app-pub-9184646133625988~9578008828",
+          "ios_app_id": "ca-app-pub-9184646133625988~9578008828"
+        }
+      ]
     ],
     "extra": {
       "eas": {

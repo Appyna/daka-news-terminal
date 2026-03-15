@@ -138,20 +138,20 @@ function MainApp() {
     initIAPAndSync();
   }, []);
 
-  // ✅ Re-synchroniser le statut premium quand l'utilisateur se connecte
-  useEffect(() => {
-    if (user?.id && !authLoading) {
-      const syncPremium = async () => {
-        try {
-          await iapService.syncPremiumStatusOnStartup(user.id);
-        } catch (err) {
-          console.error('❌ Erreur sync premium:', err);
-        }
-      };
-      
-      syncPremium();
-    }
-  }, [user?.id, authLoading]);
+  // ⚠️ DÉSACTIVÉ TEMPORAIREMENT - RevenueCat cause crash au démarrage
+  // useEffect(() => {
+  //   if (user?.id && !authLoading) {
+  //     const syncPremium = async () => {
+  //       try {
+  //         await iapService.syncPremiumStatusOnStartup(user.id);
+  //       } catch (err) {
+  //         console.error('❌ Erreur sync premium:', err);
+  //       }
+  //     };
+  //     
+  //     syncPremium();
+  //   }
+  // }, [user?.id, authLoading]);
 
   // Enregistrer les notifications
   useEffect(() => {
