@@ -122,15 +122,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [visible, slideAnim, overlayOpacity]);
 
-  const handleSourcePress = (country: string, sourceName: string, isFree: boolean) => {
+  const handleSourcePress = (country: string, sourceName: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const isLocked = !isPremium && !isFree;
-    if (isLocked) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      onPremiumPress();
-    } else {
-      onSelectFlux(country, sourceName);
-    }
+    // ✅ Build 26: Toutes les sources accessibles gratuitement
+    onSelectFlux(country, sourceName);
   };
 
   return (
@@ -184,30 +179,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </View>
                   <View style={styles.sourcesContainer}>
                     {sourcesList.map((sourceItem: { name: string; free_tier: boolean }) => {
-                      const isLocked = !isPremium && !sourceItem.free_tier;
                       const isActive = currentCountry === country && currentSource === sourceItem.name;
 
                       return (
                         <Pressable
                           key={sourceItem.name}
-                          onPress={() => handleSourcePress(country, sourceItem.name, sourceItem.free_tier)}
+                          onPress={() => handleSourcePress(country, sourceItem.name)}
                           style={[styles.sourceRow, isActive && styles.sourceRowActive]}
                         >
                           <Text
                             style={[
                               styles.sourceText,
                               isActive && styles.sourceTextActive,
-                              isLocked && styles.sourceTextLocked,
                             ]}
                             numberOfLines={1}
                           >
                             · {sourceItem.name}
                           </Text>
-                          {isLocked && (
-                            <View style={styles.lockIconContainer}>
-                              <LockIcon />
-                            </View>
-                          )}
                         </Pressable>
                       );
                     })}

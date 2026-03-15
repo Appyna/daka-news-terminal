@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, PanResponder, Alert, Linking, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as TrackingTransparency from 'expo-tracking-transparency';
+import { init, track } from '@amplitude/analytics-react-native';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { TopBar } from './src/components/TopBar';
@@ -34,6 +35,21 @@ function MainApp() {
   const [premiumModalVisible, setPremiumModalVisible] = useState(false);
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [hasRequestedTracking, setHasRequestedTracking] = useState(false);
+
+  // ✅ Initialiser Amplitude Analytics au démarrage
+  useEffect(() => {
+    try {
+      init('8f63ff00db47ed0d87fd3e308c40239b', undefined, {
+        trackingOptions: {
+          ipAddress: false,
+        },
+      });
+      track('app_open');
+      console.log('✅ Amplitude Analytics initialized');
+    } catch (error) {
+      console.warn('⚠️ Amplitude Analytics error:', error);
+    }
+  }, []);
 
   // ✅ Demander ATT après que l'app soit chargée ET visible
   useEffect(() => {
@@ -238,15 +254,20 @@ function MainApp() {
   };
 
   const handleSelectFlux = (country: string, sourceName: string) => {
-    const isFree = FREE_SOURCES.includes(sourceName);
-    if (!isFree && !isPremium) {
-      setPremiumModalVisible(true);
-      setSidebarVisible(false);
-    } else {
-      setCurrentCountry(country);
-      setCurrentSource(sourceName);
-      setFocusedNewsId(null);
-      setSidebarVisible(false);
+    // ✅ Build 26: Toutes les sources sont accessibles gratuitement
+    setCurrentCountry(country);
+    setCurrentSource(sourceName);
+    setFocusedNewsId(null);
+    setSidebarVisible(false);
+    
+    // ✅ Logger l'événement screen_view pour Amplitude Analytics
+    try {
+      track('screen_view', {
+        source: sourceName,
+        country: country,
+      });
+    } catch (error) {
+      console.warn('⚠️ Analytics track error:', error);
     }
   };
 

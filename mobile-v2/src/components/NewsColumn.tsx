@@ -103,6 +103,15 @@ export const NewsColumn: React.FC<NewsColumnProps> = ({
             updateCellsBatchingPeriod={50}
             removeClippedSubviews={true}
             style={styles.list}
+            ListEmptyComponent={
+              !loading && (
+                <View style={{ padding: 20, alignItems: 'center' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>
+                    Aucun article disponible. Faites glisser vers le bas pour actualiser.
+                  </Text>
+                </View>
+              )
+            }
           />
         )}
       </Animated.View>
