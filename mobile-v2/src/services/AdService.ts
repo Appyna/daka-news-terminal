@@ -1,10 +1,13 @@
 import { useEffect, useRef } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 
 const adUnitId = __DEV__ 
   ? TestIds.INTERSTITIAL 
-  : 'ca-app-pub-9184646133625988/2386893406';
+  : Platform.select({
+      ios: 'ca-app-pub-9184646133625988/2386893406',
+      android: 'ca-app-pub-9184646133625988/1670417966',
+    });
 
 const interstitial = InterstitialAd.createForAdRequest(adUnitId, {
   requestNonPersonalizedAdsOnly: false,

@@ -4,7 +4,10 @@ import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads'
 
 const adUnitId = __DEV__ 
   ? TestIds.BANNER 
-  : 'ca-app-pub-9184646133625988/5507405409';
+  : Platform.select({
+      ios: 'ca-app-pub-9184646133625988/5507405409',
+      android: 'ca-app-pub-9184646133625988/1823428800',
+    });
 
 export const AdBanner: React.FC = () => {
   return (
