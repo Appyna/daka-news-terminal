@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 
 const BANNER_AD_UNIT_ID = __DEV__ 
   ? TestIds.BANNER 
-  : 'ca-app-pub-9184646133625988/5507405409';
+  : Platform.select({
+      ios: 'ca-app-pub-9184646133625988/5507405409',
+      android: 'ca-app-pub-9184646133625988/1823428800',
+    });
 
 export const AdBanner: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);

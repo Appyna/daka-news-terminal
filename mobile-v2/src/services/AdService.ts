@@ -1,10 +1,13 @@
 import { useEffect, useRef } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 
 const INTERSTITIAL_AD_UNIT_ID = __DEV__
   ? TestIds.INTERSTITIAL
-  : 'ca-app-pub-9184646133625988/2386893406';
+  : Platform.select({
+      ios: 'ca-app-pub-9184646133625988/2386893406',
+      android: 'ca-app-pub-9184646133625988/1670417966',
+    });
 
 let interstitial: InterstitialAd | null = null;
 let lastAdShown = 0;
