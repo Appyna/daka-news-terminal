@@ -30,7 +30,7 @@
         "backgroundColor": "#0A0918"
       },
       "package": "app.dakanews.com",
-      "versionCode": 40,
+      "versionCode": 41,
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE",
