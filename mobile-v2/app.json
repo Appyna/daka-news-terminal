@@ -30,7 +30,7 @@
         "backgroundColor": "#0A0918"
       },
       "package": "app.dakanews.com",
-      "versionCode": 39,
+      "versionCode": 40,
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE",
@@ -62,6 +62,6 @@
   },
   "react-native-google-mobile-ads": {
     "ios_app_id": "ca-app-pub-9184646133625988~9578008828",
-    "android_app_id": "ca-app-pub-9184646133625988~9578008828"
+    "android_app_id": "ca-app-pub-9184646133625988~3407139065"
   }
 }
