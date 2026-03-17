@@ -83,7 +83,7 @@ export const NewsColumn: React.FC<NewsColumnProps> = ({
               ) : (
                 <View style={styles.emptyContainer}>
                   <Text style={styles.emptyIcon}>📰</Text>
-                  <Text style={styles.emptyText}>Aucun article disponible</Text>
+                  <Text style={styles.emptyText}>Aucun article disponible. Faites glisser vers le bas pour actualiser.</Text>
                 </View>
               )
             }
