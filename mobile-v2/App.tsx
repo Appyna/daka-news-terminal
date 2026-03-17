@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, PanResponder, Alert, Linking, Text } from 'react-native';
+import { StyleSheet, View, PanResponder, Alert, Linking, Text, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as TrackingTransparency from 'expo-tracking-transparency';
 import mobileAds from 'react-native-google-mobile-ads';
@@ -156,7 +156,7 @@ function MainApp() {
         
         if (token) {
           const deviceId = Constants.installationId || Constants.sessionId || 'unknown-device';
-          console.log('� Push token enregistré');
+          console.log('📱 Push token enregistré:', token);
           
           try {
             const { error } = await supabase
@@ -165,6 +165,7 @@ function MainApp() {
                 device_id: deviceId,
                 push_token: token,
                 user_id: user?.id || null,
+                platform: Platform.OS,
                 updated_at: new Date().toISOString()
               }, {
                 onConflict: 'device_id',
@@ -174,7 +175,7 @@ function MainApp() {
             if (error && error.code !== '23505') {
               console.error('❌ Erreur sauvegarde token:', error);
             } else {
-              console.log('✅ Token sauvegardé');
+              console.log('✅ Token sauvegardé dans Supabase');
             }
           } catch (error: any) {
             console.error('❌ Exception:', error);
