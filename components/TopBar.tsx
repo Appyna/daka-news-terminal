@@ -75,8 +75,8 @@ const TopBar: React.FC<TopBarProps> = ({
       <Logo />
 
       <div className="flex items-center gap-6">
-        {/* Auth section */}
-        {user && profile ? (
+        {/* Section vide - plus de bouton profil */}
+        {false && user && profile ? (
           <div className="relative ml-auto">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}

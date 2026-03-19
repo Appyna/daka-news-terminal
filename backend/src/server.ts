@@ -156,27 +156,11 @@ app.get('/api/news', newsRateLimiter, async (req: Request, res: Response) => {
       }
     }
 
-    // Vérifier le statut premium de l'utilisateur
-    let isPremium = false;
-    if (userId) {
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_premium, premium_until')
-          .eq('id', userId)
-          .single();
-        isPremium = profile?.is_premium && (!profile.premium_until || new Date(profile.premium_until) > new Date());
-      } catch (err) {
-        console.error('❌ Error checking premium status:', err);
-      }
-    }
-
-    // ✅ Retourner TOUS les articles (filtrage côté frontend)
+    // ✅ Site 100% gratuit - Retourner TOUS les articles sans vérification Premium
     return res.json({
       success: true,
       cached: newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION,
-      articles: allArticles,
-      isPremium
+      articles: allArticles
     });
   } catch (error: any) {
     console.error('❌ Erreur /api/news:', error);
