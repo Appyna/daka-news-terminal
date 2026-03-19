@@ -16,18 +16,34 @@ export const Privacy: React.FC = () => {
 
         <section>
           <h2>2. DONNÉES COLLECTÉES</h2>
-          <h3>2.1. Données techniques</h3>
+          <h3>2.1. Données d'inscription</h3>
           <ul>
-            <li><strong>Adresse IP :</strong> pour la sécurité et les statistiques anonymisées</li>
-            <li><strong>Type d'appareil :</strong> système d'exploitation, navigateur</li>
-            <li><strong>Données de navigation :</strong> pages visitées, temps passé sur le site</li>
+            <li><strong>Email :</strong> pour créer et gérer votre compte</li>
+            <li><strong>Nom d'utilisateur :</strong> pour personnaliser votre expérience</li>
+            <li><strong>Mot de passe :</strong> chiffré pour sécuriser votre compte</li>
           </ul>
 
-          <h3>2.2. Cookies et technologies similaires</h3>
-          <p>Nous utilisons des cookies pour améliorer votre expérience. Vous pouvez les désactiver via les paramètres de votre navigateur.</p>
+          <h3>2.2. Données d'utilisation</h3>
+          <ul>
+            <li><strong>Historique de lecture :</strong> articles consultés pour améliorer les recommandations</li>
+            <li><strong>Préférences :</strong> sources favorites, paramètres d'affichage</li>
+            <li><strong>Données techniques :</strong> type d'appareil, système d'exploitation, version de l'app</li>
+          </ul>
 
-          <h3>2.3. Google AdSense</h3>
-          <p>Nous utilisons Google AdSense pour afficher des publicités. Google peut collecter des données pour personnaliser les annonces. Consultez la <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Politique de confidentialité de Google</a> pour plus d'informations.</p>
+          <h3>2.3. Données de localisation</h3>
+          <p>Nous collectons votre <strong>localisation approximative</strong> (pays/région) pour :</p>
+          <ul>
+            <li>Afficher les actualités pertinentes pour votre région</li>
+            <li>Adapter le contenu à votre langue</li>
+            <li>Respecter les obligations légales locales</li>
+          </ul>
+          <p><strong>Nous ne collectons JAMAIS votre position GPS précise.</strong></p>
+
+          <h3>2.4. Données d'abonnement</h3>
+          <ul>
+            <li><strong>Statut Premium :</strong> pour gérer votre accès aux fonctionnalités payantes</li>
+            <li><strong>Historique de paiement :</strong> géré par Apple/Google, nous ne stockons pas vos informations bancaires</li>
+          </ul>
         </section>
 
         <section>
@@ -35,12 +51,26 @@ export const Privacy: React.FC = () => {
           <p>Vos données sont utilisées pour :</p>
           <ul>
             <li>✅ Fournir et améliorer nos services</li>
-            <li>✅ Afficher des publicités pertinentes via Google AdSense</li>
-            <li>✅ Analyser l'utilisation du service (statistiques anonymisées)</li>
+            <li>✅ Gérer votre compte et votre abonnement</li>
+            <li>✅ Personnaliser votre expérience</li>
+            <li>✅ Envoyer des notifications importantes</li>
             <li>✅ Prévenir la fraude et garantir la sécurité</li>
             <li>✅ Respecter nos obligations légales</li>
           </ul>
 
+          <h3>3.1. Suivi (Tracking)</h3>
+          <p>Nous utilisons <strong>RevenueCat</strong> pour gérer les abonnements cross-platform. Ce service peut collecter :</p>
+          <ul>
+            <li>Identifiant utilisateur anonymisé</li>
+            <li>Données d'abonnement</li>
+            <li>Informations d'appareil</li>
+          </ul>
+          <p><strong>Ces données sont utilisées UNIQUEMENT pour :</strong></p>
+          <ul>
+            <li>Gérer les abonnements entre iOS et Android</li>
+            <li>Prévenir la fraude sur les achats</li>
+            <li>Analyser les performances des offres</li>
+          </ul>
           <p><strong>Nous ne vendons JAMAIS vos données à des tiers.</strong></p>
         </section>
 
@@ -49,12 +79,13 @@ export const Privacy: React.FC = () => {
           <p>Vos données peuvent être partagées avec :</p>
           <ul>
             <li><strong>Supabase :</strong> hébergement sécurisé de la base de données (Europe)</li>
-            <li><strong>Google AdSense :</strong> affichage de publicités</li>
+            <li><strong>RevenueCat :</strong> gestion des abonnements</li>
+            <li><strong>Apple/Google :</strong> traitement des paiements</li>
             <li><strong>OpenAI :</strong> traduction automatique des titres (aucune donnée personnelle)</li>
           </ul>
           <p><strong>Nous ne partageons JAMAIS vos données avec :</strong></p>
           <ul>
-            <li>❌ Réseaux publicitaires tiers (hors Google AdSense)</li>
+            <li>❌ Réseaux publicitaires</li>
             <li>❌ Courtiers de données</li>
             <li>❌ Réseaux sociaux</li>
           </ul>

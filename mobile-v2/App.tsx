@@ -20,6 +20,8 @@ import { apiService } from './src/services/apiService';
 import { iapService } from './src/services/IAPService';
 import { Article } from './src/types';
 import { COLORS, FREE_SOURCES } from './src/constants';
+import { registerForPushNotifications, addNotificationReceivedListener, addNotificationResponseReceivedListener } from './src/services/notificationService';
+import Constants from 'expo-constants';
 import { supabase } from './src/services/supabaseClient';
 
 function MainApp() {
@@ -146,6 +148,59 @@ function MainApp() {
       syncPremium();
     }
   }, [user?.id, authLoading]);
+
+  // Enregistrer les notifications
+  useEffect(() => {
+    registerForPushNotifications()
+      .then(async token => {
+        
+        if (token) {
+          const deviceId = Constants.installationId || Constants.sessionId || 'unknown-device';
+          console.log('📱 Push token enregistré:', token);
+          
+          try {
+            const { error } = await supabase
+              .from('user_push_tokens')
+              .upsert({
+                device_id: deviceId,
+                push_token: token,
+                user_id: user?.id || null,
+                platform: Platform.OS,
+                updated_at: new Date().toISOString()
+              }, {
+                onConflict: 'device_id',
+                ignoreDuplicates: false
+              });
+            
+            if (error && error.code !== '23505') {
+              console.error('❌ Erreur sauvegarde token:', error);
+            } else {
+              console.log('✅ Token sauvegardé dans Supabase');
+            }
+          } catch (error: any) {
+            console.error('❌ Exception:', error);
+          }
+        }
+      });
+
+    const receivedListener = addNotificationReceivedListener(notification => {
+      console.log('🔔 Notification reçue:', notification);
+      Alert.alert(
+        notification.request.content.title || 'Notification',
+        notification.request.content.body || '',
+        [{ text: 'OK' }]
+      );
+    });
+
+    const responseListener = addNotificationResponseReceivedListener(() => {
+      console.log('👆 Notification cliquée');
+    });
+
+    return () => {
+      receivedListener.remove();
+      responseListener.remove();
+    };
+  }, [user]);
 
   // Swipe pour ouvrir sidebar
   const panResponder = useRef(

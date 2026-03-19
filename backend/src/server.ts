@@ -112,8 +112,10 @@ const newsRateLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Endpoint /api/news avec cache 3min (TOUTES les sources gratuites)
+// Endpoint /api/news avec cache 3min (SANS filtrage backend)
+// ⚠️ Le filtrage premium se fait côté frontend pour afficher les locks
 app.get('/api/news', newsRateLimiter, async (req: Request, res: Response) => {
+  const userId = req.query.userId as string | undefined;
   const now = Date.now();
   
   try {
@@ -154,11 +156,27 @@ app.get('/api/news', newsRateLimiter, async (req: Request, res: Response) => {
       }
     }
 
-    // ✅ Retourner TOUS les articles - Site 100% gratuit
+    // Vérifier le statut premium de l'utilisateur
+    let isPremium = false;
+    if (userId) {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_premium, premium_until')
+          .eq('id', userId)
+          .single();
+        isPremium = profile?.is_premium && (!profile.premium_until || new Date(profile.premium_until) > new Date());
+      } catch (err) {
+        console.error('❌ Error checking premium status:', err);
+      }
+    }
+
+    // ✅ Retourner TOUS les articles (filtrage côté frontend)
     return res.json({
       success: true,
       cached: newsCache && (now - newsCacheTimestamp) < NEWS_CACHE_DURATION,
-      articles: allArticles
+      articles: allArticles,
+      isPremium
     });
   } catch (error: any) {
     console.error('❌ Erreur /api/news:', error);

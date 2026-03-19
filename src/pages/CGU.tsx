@@ -26,6 +26,9 @@ export const CGU: React.FC = () => {
             <li><strong>Utilisateur / Vous :</strong> toute personne physique utilisant le Service.</li>
             <li><strong>DAKA News / Nous :</strong> l'exploitant du Service.</li>
             <li><strong>Contenu tiers :</strong> titres, extraits, articles et autres contenus fournis par des médias externes via flux RSS.</li>
+            <li><strong>Compte :</strong> espace personnel créé par l'Utilisateur (email, mot de passe, profil).</li>
+            <li><strong>Offre BASIC :</strong> accès gratuit au Service avec limitation à 3 sources.</li>
+            <li><strong>Offre PREMIUM :</strong> abonnement payant donnant accès à l'ensemble des sources.</li>
           </ul>
         </section>
 
@@ -37,19 +40,41 @@ export const CGU: React.FC = () => {
             <li>La traduction automatique des titres en français via intelligence artificielle (OpenAI GPT-4)</li>
             <li>L'affichage du titre traduit et du titre original avec indication claire de la source</li>
             <li>Un lien direct vers l'article d'origine</li>
-            <li>Accès gratuit et illimité à plus de 20 sources d'actualités</li>
           </ul>
           <p>DAKA News est un agrégateur ; il n'est pas éditeur des contenus tiers. Les contenus (titres, articles) restent la propriété exclusive des médias sources.</p>
         </section>
 
         <section>
-          <h2>3. ACCÈS AU SERVICE</h2>
-          <p>Le Service est entièrement gratuit et accessible sans création de compte. L'accès aux actualités se fait directement via le site web ou l'application mobile.</p>
+          <h2>3. ACCÈS ET CRÉATION DE COMPTE</h2>
+          <h3>3.1. Conditions d'accès</h3>
+          <ul>
+            <li>L'accès au Service nécessite la création d'un Compte (email, mot de passe, username)</li>
+            <li>L'Utilisateur s'engage à fournir des informations sincères et à jour</li>
+          </ul>
+          
+          <h3>3.2. Sécurité</h3>
+          <p>Vous êtes responsable de la confidentialité de vos identifiants. En cas d'usage frauduleux, signalez-le immédiatement à dakanewsapp@gmail.com.</p>
         </section>
 
         <section>
-          <h2>4. PUBLICITÉ</h2>
-          <p>Le Service est financé par la publicité fournie par Google AdSense. Les publicités sont affichées de manière non intrusive. Pour toute question concernant les publicités, consultez les <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Politiques publicitaires de Google</a>.</p>
+          <h2>4. ABONNEMENTS & PAIEMENTS</h2>
+          <h3>4.1. Offres</h3>
+          <ul>
+            <li><strong>Offre BASIC :</strong> gratuite, accès limité à 3 sources</li>
+            <li><strong>Offre PREMIUM :</strong> 1,99 € / mois, accès à plus de 20 sources</li>
+          </ul>
+
+          <h3>4.2. Modalités de paiement</h3>
+          <p>Paiement via Apple In-App Purchase (iOS) ou Google Play Billing (Android). Les abonnements sont gérés par Apple/Google conformément à leurs conditions.</p>
+
+          <h3>4.3. Renouvellement</h3>
+          <p>Les abonnements Premium se renouvellent automatiquement chaque mois jusqu'à résiliation.</p>
+
+          <h3>4.4. Résiliation</h3>
+          <p>L'Utilisateur peut annuler son abonnement à tout moment via les réglages de son compte Apple/Google. L'accès Premium demeure valable jusqu'à la fin de la période déjà payée.</p>
+
+          <h3>4.5. Remboursement</h3>
+          <p>Aucun remboursement prorata pour une période mensuelle entamée, sauf obligations légales impératives.</p>
         </section>
 
         <section>

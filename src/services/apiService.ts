@@ -32,8 +32,12 @@ interface BackendFeedResponse {
 
 export async function getAllNews(): Promise<BackendNewsResponse> {
   try {
-    // Appeler le backend - Toutes les sources sont gratuites
-    const url = `${API_BASE_URL}/news` 
+    // Récupérer l'utilisateur connecté
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+    
+    // Appeler le backend avec userId pour filtrage premium
+    const url = userId 
       ? `${API_BASE_URL}/news?userId=${userId}`
       : `${API_BASE_URL}/news`;
     
