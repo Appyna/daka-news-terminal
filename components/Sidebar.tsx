@@ -9,8 +9,6 @@ interface SidebarProps {
   currentCountry: string;
   currentSource: string;
   onSelectFlux: (country: string, source: string) => void;
-  isPremium: boolean;
-  onPremiumRequired: () => void;
 }
 
 interface SourceItem {
@@ -25,7 +23,7 @@ interface SourcesData {
   Monde: SourceItem[];
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, currentSource, onSelectFlux, isPremium, onPremiumRequired }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, currentSource, onSelectFlux }) => {
   const [sources, setSources] = useState<SourcesData>({ Israel: [], France: [], Monde: [] });
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -109,18 +107,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
                   <div className="ml-4 space-y-0.5">
                     {sourcesList.map((sourceItem) => {
                       const isActive = currentCountry === country && currentSource === sourceItem.name;
-                      const isLocked = !sourceItem.free_tier && !isPremium;
                       
                       return (
                         <button
                           key={sourceItem.name}
-                          onClick={() => {
-                            if (isLocked) {
-                              onPremiumRequired();
-                            } else {
-                              onSelectFlux(country, sourceItem.name);
-                            }
-                          }}
+                          onClick={() => onSelectFlux(country, sourceItem.name)}
                           className={`w-full text-left px-3 py-2 rounded-md transition-all text-xs flex items-center gap-2 ${
                             isActive 
                               ? 'bg-yellow-500/15 text-yellow-500 font-semibold border-l-2 border-yellow-500' 
@@ -129,11 +120,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentCountry, curr
                         >
                           <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-yellow-500' : 'bg-white/20'}`} />
                           {sourceItem.name}
-                          {isLocked && (
-                            <svg className="w-3 h-3 ml-auto" fill="#F5C518" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                            </svg>
-                          )}
                         </button>
                       );
                     })}

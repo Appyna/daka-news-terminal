@@ -3,16 +3,11 @@ import Logo from './components/Logo';
 import Sidebar from './components/Sidebar';
 import NewsColumn from './components/NewsColumn';
 import TopBar from '../components/TopBar';
-import { PremiumModal } from './components/PremiumModal';
-import { useAuth } from './contexts/AuthContext';
 import { NewsItem, NewsColumn as NewsColumnType } from './types-old';
 import { COLORS } from './constants';
 import { getAllNews } from './services/apiService';
 
-const API_BASE_URL = 'https://api.dakanews.com/api';
-
 const App: React.FC = () => {
-  const { isPremium, refreshProfile } = useAuth();
   const [allColumns, setAllColumns] = useState<NewsColumnType[]>([]);
   const [focusedNewsId, setFocusedNewsId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -20,35 +15,6 @@ const App: React.FC = () => {
   const [currentCountry, setCurrentCountry] = useState('Israel');
   const [currentSource, setCurrentSource] = useState('Ynet');
   const [isLoading, setIsLoading] = useState(true);
-  const [showPasswordReset, setShowPasswordReset] = useState(false);
-  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
-
-  // Détecter le retour du paiement Stripe
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('payment') === 'success') {
-      console.log('💳 Retour paiement détecté, rechargement du profil...');
-      setShowPaymentSuccess(true);
-      // Recharger le profil pour obtenir le statut Premium
-      refreshProfile();
-      // Nettoyer l'URL après 5 secondes
-      setTimeout(() => {
-        window.history.replaceState({}, document.title, window.location.pathname);
-        setShowPaymentSuccess(false);
-      }, 5000);
-    }
-  }, [refreshProfile]);
-
-  // Détecter le retour du magic link de réinitialisation
-  useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    if (hashParams.get('type') === 'recovery') {
-      setShowPasswordReset(true);
-      // Nettoyer l'URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
 
   useEffect(() => {
     const loadAllFeeds = async () => {
@@ -153,33 +119,9 @@ const App: React.FC = () => {
         currentCountry={currentCountry}
         currentSource={currentSource}
         onSelectFlux={handleSelectFlux}
-        isPremium={isPremium}
-        onPremiumRequired={() => {
-          setShowPremiumModal(true);
-          setMenuOpen(false);
-        }}
       />
 
       <main className="flex-1 min-h-0 w-full overflow-hidden">
-        {/* Message de confirmation paiement */}
-        {showPaymentSuccess && (
-          <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
-            <div 
-              className="px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3"
-              style={{
-                background: `linear-gradient(135deg, ${COLORS.accentYellow1}, ${COLORS.accentYellow2})`,
-                color: COLORS.dark1
-              }}
-            >
-              <svg className="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-              <p className="font-bold text-base sm:text-lg whitespace-nowrap">
-                Bienvenue dans DAKA News Premium
-              </p>
-            </div>
-          </div>
-        )}
 
         {filteredColumns.length === 0 ? (
           <div className="flex items-center justify-center h-full" style={{ backgroundColor: '#1C1940' }}>
@@ -220,11 +162,6 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
-
-      <PremiumModal 
-        isOpen={showPremiumModal}
-        onClose={() => setShowPremiumModal(false)}
-      />
     </div>
   );
 };

@@ -30,10 +30,12 @@
         "backgroundColor": "#0A0918"
       },
       "package": "app.dakanews.com",
-      "versionCode": 66,
+      "versionCode": 65,
       "permissions": [
         "android.permission.INTERNET",
-        "android.permission.ACCESS_NETWORK_STATE"
+        "android.permission.ACCESS_NETWORK_STATE",
+        "com.google.android.c2dm.permission.RECEIVE",
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
