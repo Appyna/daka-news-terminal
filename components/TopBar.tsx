@@ -74,30 +74,34 @@ const TopBar: React.FC<TopBarProps> = ({
 
       <Logo />
 
-      <div className="flex items-center gap-6">
-        {/* Section vide - plus de bouton profil */}
-        {false && user && profile ? (
-          <div className="relative ml-auto">
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="hover:opacity-80 transition-opacity"
-            >
-              {/* Avatar avec badge premium */}
-              <div className="relative">
-                <div 
-                  className="w-9 h-9 rounded-full flex items-center justify-center font-light text-[1.15rem] shadow-lg"
-                  style={{
-                    backgroundColor: COLORS.dark2,
-                    color: COLORS.accentYellow1,
-                    boxShadow: `0 0 0 0.4px ${COLORS.accentYellow1}, 0 4px 15px rgba(245, 197, 24, 0.2)`
-                  }}
-                >
-                  {profile.username.charAt(0).toUpperCase()}
-                </div>
-                {isPremiumUser && (
-                  <div className="absolute -bottom-0.5 -right-0.5">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill={COLORS.accentYellow1}>
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+      {/* Espace vide à droite - plus de bouton profil/auth */}
+      <div className="w-10"></div>
+
+      {/* Section masquée - profil et auth désactivés */}
+      {false && (
+        <div className="flex items-center gap-6">
+          {user && profile ? (
+            <div className="relative ml-auto">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="hover:opacity-80 transition-opacity"
+              >
+                {/* Avatar avec badge premium */}
+                <div className="relative">
+                  <div 
+                    className="w-9 h-9 rounded-full flex items-center justify-center font-light text-[1.15rem] shadow-lg"
+                    style={{
+                      backgroundColor: COLORS.dark2,
+                      color: COLORS.accentYellow1,
+                      boxShadow: `0 0 0 0.4px ${COLORS.accentYellow1}, 0 4px 15px rgba(245, 197, 24, 0.2)`
+                    }}
+                  >
+                    {profile.username.charAt(0).toUpperCase()}
+                  </div>
+                  {isPremiumUser && (
+                    <div className="absolute -bottom-0.5 -right-0.5">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill={COLORS.accentYellow1}>
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
                   </div>
                 )}
@@ -193,25 +197,26 @@ const TopBar: React.FC<TopBarProps> = ({
                 </div>
               </>
             )}
-          </div>
-        ) : (
-          <div className="relative ml-auto">
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="hover:opacity-80 transition-opacity"
-            >
-              <div 
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: COLORS.dark3 }}
+            </div>
+          ) : (
+            <div className="relative ml-auto">
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="hover:opacity-80 transition-opacity"
               >
-                <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-            </button>
-          </div>
-        )}
-      </div>
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: COLORS.dark3 }}
+                >
+                  <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Auth Modal */}
       <AuthModal isOpen={showAuthModal} onClose={handleCloseModal} />
