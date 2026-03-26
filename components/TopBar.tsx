@@ -64,17 +64,17 @@ const TopBar: React.FC<TopBarProps> = ({
       {/* Menu hamburger flux/sources en haut à gauche */}
       <button
         onClick={() => setMenuOpen(!menuOpen)}
-        className="flex items-center gap-1 px-2 py-0.5 rounded transition-colors hover:bg-white/5"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded transition-colors hover:bg-white/5"
         style={{ 
           border: `0.3px solid ${COLORS.accentYellow1}`,
           color: COLORS.accentYellow1,
-          fontSize: '11px',
+          fontSize: '13px',
           fontWeight: 600,
           letterSpacing: '0.4px',
         }}
         aria-label="Menu des sources"
       >
-        <span style={{ fontSize: '13px' }}>☰</span>
+        <span style={{ fontSize: '15px' }}>☰</span>
         <span>Sources</span>
       </button>
 
