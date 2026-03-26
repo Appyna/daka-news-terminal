@@ -64,12 +64,18 @@ const TopBar: React.FC<TopBarProps> = ({
       {/* Menu hamburger flux/sources en haut à gauche */}
       <button
         onClick={() => setMenuOpen(!menuOpen)}
-        className="p-2 hover:bg-white/5 rounded-md transition-colors"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors hover:bg-white/5"
+        style={{ 
+          border: `0.5px solid ${COLORS.accentYellow1}`,
+          color: COLORS.accentYellow1,
+          fontSize: '13px',
+          fontWeight: 600,
+          letterSpacing: '0.5px',
+        }}
         aria-label="Menu des sources"
       >
-        <svg className="w-6 h-6" style={{ color: COLORS.accentYellow1 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+        <span style={{ fontSize: '15px' }}>☰</span>
+        <span>Sources</span>
       </button>
 
       <Logo />
