@@ -86,9 +86,11 @@ export async function collectSourceArticles(source: Source): Promise<number> {
   let newArticlesCount = 0;
   let skippedOld = 0;
   let skippedDuplicates = 0;
-  const cutoffTime = Date.now() - 24 * 60 * 60 * 1000;
+  // Utiliser retention_days de la source (défaut 1 = 24h pour toutes les sources normales)
+  const retentionDays = source.retention_days || 1;
+  const cutoffTime = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
 
-  console.log(`📊 ${source.name}: ${items.length} articles dans le flux RSS`);
+  console.log(`📊 ${source.name}: ${items.length} articles dans le flux RSS (fenêtre ${retentionDays}j)`);
 
   // ✅ TRAITER TOUS LES ARTICLES (pas de limite artificielle)
   // Le cache + vérification DB font déjà le filtrage intelligent

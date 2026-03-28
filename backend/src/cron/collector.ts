@@ -19,8 +19,8 @@ export function startRSSCollectionCron() {
       const sources = await getActiveSources();
       await collectAllSources(sources);
       
-      // Nettoyage immédiatement après la collecte
-      console.log(`🧹 Nettoyage articles >24h...`);
+      // Nettoyage après chaque collecte (respecte retention_days par source)
+      console.log(`🧹 Nettoyage anciens articles...`);
       const deletedCount = await cleanupOldArticles();
       console.log(`✅ ${deletedCount} articles supprimés\n`);
       

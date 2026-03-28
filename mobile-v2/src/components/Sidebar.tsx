@@ -122,9 +122,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [visible, slideAnim, overlayOpacity]);
 
-  const handleSourcePress = (country: string, sourceName: string, isFree: boolean) => {
+  const handleSourcePress = (country: string, sourceName: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // ✅ Build 26 : Toutes les sources sont accessibles gratuitement
+    // ✅ Build 26: Toutes les sources accessibles gratuitement
     onSelectFlux(country, sourceName);
   };
 
@@ -180,12 +180,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <View style={styles.sourcesContainer}>
                     {sourcesList.map((sourceItem: { name: string; free_tier: boolean }) => {
                       const isActive = currentCountry === country && currentSource === sourceItem.name;
-                      // ✅ Build 26 : Plus de cadenas, toutes sources accessibles
 
                       return (
                         <Pressable
                           key={sourceItem.name}
-                          onPress={() => handleSourcePress(country, sourceItem.name, sourceItem.free_tier)}
+                          onPress={() => handleSourcePress(country, sourceItem.name)}
                           style={[styles.sourceRow, isActive && styles.sourceRowActive]}
                         >
                           <Text

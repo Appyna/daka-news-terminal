@@ -56,7 +56,7 @@ export async function getArticlesBySource(sourceName: string): Promise<Article[]
 export async function getArticlesByCategory(category: string): Promise<Article[]> {
   const { data: sources } = await supabase
     .from('sources')
-    .select('id')
+    .select('id, retention_days')
     .eq('category', category)
     .eq('active', true);
 
@@ -66,13 +66,18 @@ export async function getArticlesByCategory(category: string): Promise<Article[]
 
   const sourceIds = sources.map(s => s.id);
 
+  // Utiliser la rétention maximale de la catégorie comme fenêtre de requête
+  // Ex: si Aplus a 7 jours, on cherche 7 jours pour tout Israël
+  // Les autres sources n'ont pas d'articles > 48h (nettoyés par le cron)
+  const maxRetention = Math.max(...sources.map(s => s.retention_days || 1));
+  const cutoff = new Date(Date.now() - maxRetention * 24 * 60 * 60 * 1000).toISOString();
+
   // ✅ JOIN avec sources pour ajouter le nom de la source
-  // Filtre 24h pour afficher uniquement les articles récents
   const { data, error} = await supabase
     .from('articles')
     .select('*, sources(name)')
     .in('source_id', sourceIds)
-    .gte('pub_date', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+    .gte('pub_date', cutoff)
     .order('pub_date', { ascending: false });
 
   if (error) {
@@ -127,22 +132,38 @@ export async function upsertArticle(article: Omit<Article, 'id' | 'created_at'>)
 }
 
 /**
- * Nettoyer les articles de plus de 48h (aligner avec fenêtre de lecture)
+ * Nettoyer les anciens articles en respectant la rétention par source
+ * (rétention_days * 2 pour garder une marge de sécurité)
  */
 export async function cleanupOldArticles(): Promise<number> {
-  const cutoffDate = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+  // Récupérer toutes les sources avec leur rétention
+  const { data: sources } = await supabase
+    .from('sources')
+    .select('id, retention_days');
 
-  const { error, count } = await supabase
-    .from('articles')
-    .delete()
-    .lt('pub_date', cutoffDate);
+  if (!sources || sources.length === 0) return 0;
 
-  if (error) {
-    console.error('❌ Erreur cleanup articles:', error);
-    return 0;
+  // Grouper les sources par nombre de jours de rétention
+  const groups = new Map<number, number[]>();
+  for (const s of sources) {
+    const days = s.retention_days || 1;
+    if (!groups.has(days)) groups.set(days, []);
+    groups.get(days)!.push(s.id);
   }
 
-  return count || 0;
+  let totalDeleted = 0;
+  for (const [days, ids] of groups) {
+    // On garde 2x la rétention (ex: 48h pour 1 jour, 14 jours pour 7 jours)
+    const cutoff = new Date(Date.now() - days * 2 * 24 * 60 * 60 * 1000).toISOString();
+    const { count, error: deleteError } = await supabase
+      .from('articles')
+      .delete({ count: 'exact' })
+      .in('source_id', ids)
+      .lt('pub_date', cutoff);
+    if (!deleteError) totalDeleted += count || 0;
+  }
+
+  return totalDeleted;
 }
 
 /**

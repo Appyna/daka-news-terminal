@@ -33,6 +33,7 @@ export interface Source {
   source_lang: 'fr' | 'en' | 'he'; // Langue source: français, anglais, hébreu
   display_order: number;
   category_order: number;
+  retention_days: number; // Nombre de jours de conservation des articles (défaut: 1)
   created_at: string;
   updated_at: string;
 }

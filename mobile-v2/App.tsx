@@ -39,42 +39,34 @@ function MainApp() {
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [hasRequestedTracking, setHasRequestedTracking] = useState(false);
 
-  // ✅ Initialiser AdMob APRÈS 3 secondes (laisser l'app démarrer d'abord)
+  // ✅ Initialiser AdMob v12.6.0 au démarrage
   useEffect(() => {
-    const timer = setTimeout(() => {
-      mobileAds()
-        .initialize()
-        .then(adapterStatuses => {
-          console.log('✅ AdMob initialized (delayed):', adapterStatuses);
-        })
-        .catch(error => {
-          console.error('❌ AdMob initialization error:', error);
-        });
-    }, 3000); // 3 secondes de délai
-    
-    return () => clearTimeout(timer);
+    mobileAds()
+      .initialize()
+      .then(adapterStatuses => {
+        console.log('✅ AdMob v12.6.0 initialized:', adapterStatuses);
+      })
+      .catch(error => {
+        console.error('❌ AdMob initialization error:', error);
+      });
   }, []);
 
-  // ❌ Amplitude DÉSACTIVÉ temporairement (Build 34 - test AdMob seul)
-  // useEffect(() => {
-  //   const initAnalytics = () => {
-  //     try {
-  //       // Initialisation synchrone pour v1.5.46
-  //       init('8f63ff00db47ed0d87fd3e308c40239b', undefined, {
-  //         trackingOptions: {
-  //           ipAddress: false,
-  //         },
-  //       });
-  //       track('app_open');
-  //       console.log('✅ Amplitude Analytics initialized');
-  //     } catch (error) {
-  //       console.warn('⚠️ Amplitude Analytics error:', error);
-  //     }
-  //   };
-  //   initAnalytics();
-  // }, []);
+  // ✅ Initialiser Amplitude Analytics au démarrage
+  useEffect(() => {
+    try {
+      init('8f63ff00db47ed0d87fd3e308c40239b', undefined, {
+        trackingOptions: {
+          ipAddress: false,
+        },
+      });
+      track('app_open');
+      console.log('✅ Amplitude Analytics initialized');
+    } catch (error) {
+      console.warn('⚠️ Amplitude Analytics error:', error);
+    }
+  }, []);
 
-  // ✅ Activer les interstitielles automatiques
+  // ✅ Activer les pubs interstitielles automatiques
   useInterstitialAds();
 
   // ✅ Demander ATT après que l'app soit chargée ET visible
@@ -142,20 +134,20 @@ function MainApp() {
     initIAPAndSync();
   }, []);
 
-  // ⚠️ DÉSACTIVÉ TEMPORAIREMENT - RevenueCat cause crash au démarrage
-  // useEffect(() => {
-  //   if (user?.id && !authLoading) {
-  //     const syncPremium = async () => {
-  //       try {
-  //         await iapService.syncPremiumStatusOnStartup(user.id);
-  //       } catch (err) {
-  //         console.error('❌ Erreur sync premium:', err);
-  //       }
-  //     };
-  //     
-  //     syncPremium();
-  //   }
-  // }, [user?.id, authLoading]);
+  // ✅ Re-synchroniser le statut premium quand l'utilisateur se connecte
+  useEffect(() => {
+    if (user?.id && !authLoading) {
+      const syncPremium = async () => {
+        try {
+          await iapService.syncPremiumStatusOnStartup(user.id);
+        } catch (err) {
+          console.error('❌ Erreur sync premium:', err);
+        }
+      };
+      
+      syncPremium();
+    }
+  }, [user?.id, authLoading]);
 
   // Enregistrer les notifications
   useEffect(() => {
@@ -251,8 +243,8 @@ function MainApp() {
     } catch (error: any) {
       console.error(`Error loading ${sourceName}:`, error);
       const errorMsg = error.message === 'Request timeout' 
-        ? 'La requête a expiré. Glissez vers le bas pour actualiser ou vérifiez votre connexion.'
-        : 'Impossible de charger les articles. Glissez vers le bas pour actualiser ou vérifiez votre connexion.';
+        ? 'La requête a expiré. Vérifiez votre connexion.'
+        : 'Impossible de charger les articles. Vérifiez votre connexion.';
       setError(errorMsg);
       setArticles([]);
       
@@ -280,21 +272,21 @@ function MainApp() {
   };
 
   const handleSelectFlux = (country: string, sourceName: string) => {
-    // ✅ Build 26 : Toutes les sources sont accessibles gratuitement
+    // ✅ Build 26: Toutes les sources sont accessibles gratuitement
     setCurrentCountry(country);
     setCurrentSource(sourceName);
     setFocusedNewsId(null);
     setSidebarVisible(false);
     
-    // ❌ Amplitude DÉSACTIVÉ temporairement (Build 34)
-    // try {
-    //   track('screen_view', {
-    //     source: sourceName,
-    //     country: country,
-    //   });
-    // } catch (error) {
-    //   console.warn('⚠️ Analytics track error:', error);
-    // }
+    // ✅ Logger l'événement screen_view pour Amplitude Analytics
+    try {
+      track('screen_view', {
+        source: sourceName,
+        country: country,
+      });
+    } catch (error) {
+      console.warn('⚠️ Analytics track error:', error);
+    }
   };
 
   const handleManageSubscription = async () => {
@@ -381,9 +373,6 @@ function MainApp() {
         />
       </View>
 
-      {/* ✅ Bannière publicitaire en bas */}
-      <AdBanner />
-
       <AuthModal
         visible={authModalVisible}
         onClose={() => setAuthModalVisible(false)}
@@ -398,6 +387,9 @@ function MainApp() {
         visible={settingsModalVisible}
         onClose={() => setSettingsModalVisible(false)}
       />
+
+      {/* ✅ Bannière publicitaire AdMob */}
+      <AdBanner />
     </View>
   );
 }
