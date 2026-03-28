@@ -52,11 +52,12 @@ export async function getArticlesBySource(sourceName: string): Promise<Article[]
 
 /**
  * Récupérer tous les articles par catégorie (avec le nom de la source)
+ * Stratégie : une requête par groupe de rétention pour éviter la limite 1000 de Supabase
  */
 export async function getArticlesByCategory(category: string): Promise<Article[]> {
   const { data: sources } = await supabase
     .from('sources')
-    .select('id, retention_days')
+    .select('id, name, retention_days')
     .eq('category', category)
     .eq('active', true);
 
@@ -64,31 +65,37 @@ export async function getArticlesByCategory(category: string): Promise<Article[]
     return [];
   }
 
-  const sourceIds = sources.map(s => s.id);
-
-  // Utiliser la rétention maximale de la catégorie comme fenêtre de requête
-  // Ex: si Aplus a 7 jours, on cherche 7 jours pour tout Israël
-  // Les autres sources n'ont pas d'articles > 48h (nettoyés par le cron)
-  const maxRetention = Math.max(...sources.map(s => s.retention_days || 1));
-  const cutoff = new Date(Date.now() - maxRetention * 24 * 60 * 60 * 1000).toISOString();
-
-  // ✅ JOIN avec sources pour ajouter le nom de la source
-  // limit(5000) : évite la limite par défaut Supabase de 1000 lignes
-  const { data, error} = await supabase
-    .from('articles')
-    .select('*, sources(name)')
-    .in('source_id', sourceIds)
-    .gte('pub_date', cutoff)
-    .order('pub_date', { ascending: false })
-    .limit(5000);
-
-  if (error) {
-    console.error(`❌ Erreur récupération articles ${category}:`, error);
-    return [];
+  // Grouper les sources par retention_days pour faire une requête par groupe
+  const groups = new Map<number, number[]>();
+  for (const s of sources) {
+    const days = s.retention_days || 1;
+    if (!groups.has(days)) groups.set(days, []);
+    groups.get(days)!.push(s.id);
   }
 
+  // Une requête par groupe de rétention → chaque requête reste sous 1000 lignes
+  let allArticles: any[] = [];
+  for (const [days, ids] of groups) {
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*, sources(name)')
+      .in('source_id', ids)
+      .gte('pub_date', cutoff)
+      .order('pub_date', { ascending: false });
+
+    if (error) {
+      console.error(`❌ Erreur récupération articles ${category} (${days}j):`, error);
+      continue;
+    }
+    allArticles = allArticles.concat(data || []);
+  }
+
+  // Tri global par date décroissante après fusion des groupes
+  allArticles.sort((a, b) => new Date(b.pub_date).getTime() - new Date(a.pub_date).getTime());
+
   // Flatten le résultat pour ajouter source.name comme 'source'
-  return (data || []).map((article: any) => ({
+  return allArticles.map((article: any) => ({
     ...article,
     source: article.sources?.name || 'Unknown'
   }));
