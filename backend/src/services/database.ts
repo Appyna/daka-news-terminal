@@ -73,12 +73,14 @@ export async function getArticlesByCategory(category: string): Promise<Article[]
   const cutoff = new Date(Date.now() - maxRetention * 24 * 60 * 60 * 1000).toISOString();
 
   // ✅ JOIN avec sources pour ajouter le nom de la source
+  // limit(5000) : évite la limite par défaut Supabase de 1000 lignes
   const { data, error} = await supabase
     .from('articles')
     .select('*, sources(name)')
     .in('source_id', sourceIds)
     .gte('pub_date', cutoff)
-    .order('pub_date', { ascending: false });
+    .order('pub_date', { ascending: false })
+    .limit(5000);
 
   if (error) {
     console.error(`❌ Erreur récupération articles ${category}:`, error);
