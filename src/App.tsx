@@ -77,7 +77,12 @@ const App: React.FC = () => {
         for (const [sourceName, articles] of sourceMap.entries()) {
           const items: NewsItem[] = articles.map((article: any) => {
             const pubDate = new Date(article.pub_date);
-            const time = `${String(pubDate.getHours()).padStart(2, '0')}:${String(pubDate.getMinutes()).padStart(2, '0')}`;
+            const hours = String(pubDate.getHours()).padStart(2, '0');
+            const mins = String(pubDate.getMinutes()).padStart(2, '0');
+            const day = String(pubDate.getDate()).padStart(2, '0');
+            const month = String(pubDate.getMonth() + 1).padStart(2, '0');
+            const year = String(pubDate.getFullYear()).slice(2);
+            const time = `${hours}:${mins} | ${day}.${month}.${year}`;
             
             return {
               id: article.id,

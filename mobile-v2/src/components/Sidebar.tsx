@@ -38,7 +38,10 @@ const SOURCES_BY_COUNTRY: SourcesData = {
     { name: "Israel Hayom", color: "#AA96DA", free_tier: false },
     { name: "JDN Hadachot", color: "#FCBAD3", free_tier: false },
     { name: "Walla", color: "#FFD93D", free_tier: false },
-    { name: "Maariv", color: "#A8D8EA", free_tier: false }
+    { name: "Maariv", color: "#A8D8EA", free_tier: false },
+    { name: "N12", color: "#E74C3C", free_tier: true },
+    { name: "Aplus la chaîne", color: "#FF8C42", free_tier: false },
+    { name: "Simon Moos", color: "#9B59B6", free_tier: true }
   ],
   France: [
     { name: "France Info", color: "#FF6B9D", free_tier: true },

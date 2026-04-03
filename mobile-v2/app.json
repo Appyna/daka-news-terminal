@@ -2,7 +2,7 @@
   "expo": {
     "name": "DAKA News",
     "slug": "daka-news",
-    "version": "1.5.2",
+    "version": "1.5.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.app.dakanews",
-      "buildNumber": "35",
+      "buildNumber": "45",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "SKPaymentTransactionObserver": true,
@@ -25,16 +25,18 @@
       }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A0918"
       },
       "package": "app.dakanews.com",
-      "versionCode": 3,
+      "versionCode": 734,
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE",
-        "com.google.android.c2dm.permission.RECEIVE"
+        "com.google.android.c2dm.permission.RECEIVE",
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -51,14 +53,7 @@
           "sounds": []
         }
       ],
-      "expo-tracking-transparency",
-      [
-        "react-native-google-mobile-ads",
-        {
-          "android_app_id": "ca-app-pub-9184646133625988~9578008828",
-          "ios_app_id": "ca-app-pub-9184646133625988~9578008828"
-        }
-      ]
+      "expo-tracking-transparency"
     ],
     "extra": {
       "eas": {
@@ -66,5 +61,9 @@
       }
     },
     "owner": "gabriel26-91"
+  },
+  "react-native-google-mobile-ads": {
+    "ios_app_id": "ca-app-pub-9184646133625988~9578008828",
+    "android_app_id": "ca-app-pub-9184646133625988~9578008828"
   }
 }
